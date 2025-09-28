@@ -212,6 +212,11 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             IsEach = poolingInfo.IsEach;
             IsBreak = poolingInfo.IsBreak;
             IsEX = poolingInfo.IsEX;
+            IsKustom = poolingInfo.IsKustom;
+            IsSlient = poolingInfo.IsSlient;
+            KustomSkin = poolingInfo.KustomSkin;
+            KustomWav = poolingInfo.KustomWav;
+            UsingSV = poolingInfo.UsingSV;
             QueueInfo = poolingInfo.QueueInfo;
             _isJudged = false;
             Distance = -100;

@@ -16,6 +16,11 @@ namespace MajdataPlay.Scenes.Game.Buffers
         public bool IsEach { get; init; }
         public bool IsBreak { get; init; }
         public bool IsEX { get; init; }
+        public bool IsKustom { get; init; }
+        public bool IsSlient { get; init; }
+        public string? KustomSkin { get; init; }
+        public string? KustomWav { get; init; }
+        public int UsingSV { get; init; }
         /// <summary>
         /// 该Info绑定的实例
         /// </summary>

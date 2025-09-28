@@ -159,5 +159,35 @@ namespace MajdataPlay.Scenes.Game.Utils
                     return SlideOKShape.Str;
             }
         }
+        public static string RemoveKustomText(string text)
+        {
+            var sb = new StringBuilder(text.Length);
+            int length = text.Length;
+            bool inside = false;
+            char quote = '\0';
+
+            for (int i = 0; i < length; i++)
+            {
+                char c = text[i];
+
+                if (!inside && (c == '"' || c == '\''))
+                {
+                    inside = true;
+                    quote = c;       // 记录是单引号还是双引号
+                    continue;        // 不写入引号
+                }
+
+                if (inside && c == quote)
+                {
+                    inside = false;  // 结束引号区
+                    continue;        // 不写入引号
+                }
+
+                if (!inside)
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
     }
 }

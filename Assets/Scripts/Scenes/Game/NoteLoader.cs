@@ -485,6 +485,11 @@ namespace MajdataPlay.Scenes.Game
                     IsEach = isEach,
                     IsBreak = note.IsBreak,
                     IsEX = note.IsEx,
+                    IsKustom = note.IsKustom,
+                    IsSlient = note.IsSlient,
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
+                    UsingSV = note.UsingSV,
                     IsStar = note.IsForceStar,
                     RotateSpeed = note.IsFakeRotate ? -440f : 0,
                     QueueInfo = new TapQueueInfo()
@@ -540,6 +545,11 @@ namespace MajdataPlay.Scenes.Game
                     IsEach = isEach,
                     IsBreak = note.IsBreak,
                     IsEX = note.IsEx,
+                    IsKustom = note.IsKustom,
+                    IsSlient = note.IsSlient,
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
+                    UsingSV = note.UsingSV,
                     QueueInfo = new TapQueueInfo()
                     {
                         Index = _noteIndex[startPos]++,
@@ -621,6 +631,11 @@ namespace MajdataPlay.Scenes.Game
                     IsEach = isEach,
                     IsBreak = note.IsBreak,
                     IsEX = note.IsEx,
+                    IsKustom = note.IsKustom,
+                    IsSlient = note.IsSlient,
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
+                    UsingSV = note.UsingSV,
                     IsStar = true,
                     IsDouble = isDouble,
                     RotateSpeed = -180 / (float)note.SlideTime,
@@ -684,6 +699,11 @@ namespace MajdataPlay.Scenes.Game
                     IsEach = isEach,
                     IsBreak = isBreak,
                     IsEX = false,
+                    IsKustom = note.IsKustom,
+                    IsSlient = note.IsSlient,
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
+                    UsingSV = note.UsingSV,
                     NoteSortOrder = noteSortOrder,
                     QueueInfo = queueInfo,
                 };
@@ -746,6 +766,11 @@ namespace MajdataPlay.Scenes.Game
                     IsEach = isEach,
                     IsBreak = isBreak,
                     IsEX = false,
+                    IsKustom = note.IsKustom,
+                    IsSlient = note.IsSlient,
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
+                    UsingSV = note.UsingSV,
                     LastFor = lastFor,
                     NoteSortOrder = noteSortOrder,
                     QueueInfo = queueInfo,
@@ -841,7 +866,7 @@ namespace MajdataPlay.Scenes.Game
                 using var subBarCount = new RentedList<int>();
                 var sumBarCount = 0;
 
-                var noteContent = note.RawContent;
+                var noteContent = NoteHelper.RemoveKustomText(note.RawContent);
                 var latestStartIndex = charIntParse(noteContent[0]); // 存储上一个Slide的结尾 也就是下一个Slide的起点
                 var ptr = 1; // 指向目前处理的字符
 
@@ -946,7 +971,9 @@ namespace MajdataPlay.Scenes.Game
                                                                           "组合星星有错误\nSLIDE CHAIN ERROR");
                             }
                         }
-                        slidePart.RawContent ??= sb.ToString();
+                        
+                        if (string.IsNullOrEmpty(slidePart.RawContent))
+                            slidePart.RawContent = sb.ToString();
                         string slideShape = NoteCreateHelper.DetectShapeFromText(slidePart.RawContent);
                         if (slideShape.StartsWith("-"))
                         {

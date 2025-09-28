@@ -1,15 +1,16 @@
-using MajdataPlay.Settings;
+using MajdataPlay.Editor;
 using MajdataPlay.IO;
+using MajdataPlay.Numerics;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Notes.Skins;
+using MajdataPlay.Scenes.View;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using MajdataPlay.Editor;
 using UnityEngine;
 using Random = System.Random;
-using MajdataPlay.Scenes.View;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Numerics;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 {
@@ -69,6 +70,41 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             get => _isEX;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => _isEX = value;
+        }
+        public bool IsKustom
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isKustom;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _isKustom = value;
+        }
+        public bool IsSlient
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isSlient;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _isSlient = value;
+        }
+        public string? KustomSkin
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _kustomSkin;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _kustomSkin = value;
+        }
+        public string? KustomWav
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _kustomWav;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _kustomWav = value;
+        }
+        public int UsingSV
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _usingSV;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _usingSV = value;
         }
         public bool IsInitialized
         {
@@ -432,6 +468,16 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         bool _isBreak = false;
         [ReadOnlyField, SerializeField]
         bool _isEX = false;
+        [ReadOnlyField, SerializeField]
+        bool _isKustom = false;
+        [ReadOnlyField, SerializeField]
+        bool _isSlient = false;
+        [ReadOnlyField, SerializeField]
+        string? _kustomSkin = null;
+        [ReadOnlyField, SerializeField]
+        string? _kustomWav = null;
+        [ReadOnlyField, SerializeField]
+        int _usingSV = 1;
         [ReadOnlyField, SerializeField]
         bool _isAutoplay = false;
         [ReadOnlyField, SerializeField]
