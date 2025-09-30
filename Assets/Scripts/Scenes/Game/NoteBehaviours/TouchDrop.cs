@@ -1,15 +1,16 @@
 ﻿using MajdataPlay.Buffers;
 using MajdataPlay.Extensions;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
 using MajdataPlay.Scenes.Game.Buffers;
 using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Notes.Touch;
 using MajdataPlay.Scenes.Game.Utils;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
-using MajdataPlay.Settings;
 using UnityEngine;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -235,6 +236,13 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             {
                 SetFansSprite(skin.Normal);
                 _pointRenderer.sprite = skin.Point_Normal;
+            }
+
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                SetFansSprite(SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin)));
+                _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_point")));
             }
 
             _justBorderRenderer.sprite = skin.JustBorder;

@@ -1238,6 +1238,10 @@ namespace MajdataPlay.Scenes.Game
             SliCompo.ConnectInfo = info;
             SliCompo.IsBreak = note.IsSlideBreak;
             SliCompo.IsEach = isEach || multiple > 1;
+            SliCompo.IsKustom = note.IsKustomSlide;
+            SliCompo.IsSlient = note.IsSlient;
+            SliCompo.KustomSkin = note.KustomSkin;
+            SliCompo.KustomWav = note.KustomWav;
             SliCompo.IsMirror = isMirror;
             SliCompo.IsJustR = isJustR;
             SliCompo.EndPos = endPos;
@@ -1321,6 +1325,10 @@ namespace MajdataPlay.Scenes.Game
 
             WifiCompo.IsBreak = note.IsSlideBreak;
             WifiCompo.IsEach = isEach || multiple > 1;
+            WifiCompo.IsKustom = note.IsKustomSlide;
+            WifiCompo.IsSlient = note.IsSlient;
+            WifiCompo.KustomSkin = note.KustomSkin;
+            WifiCompo.KustomWav = note.KustomWav;
             WifiCompo.IsJustR = isJustR;
             WifiCompo.EndPos = endPos;
             WifiCompo.Speed = Math.Abs(NoteSpeed * timing.HSpeed);

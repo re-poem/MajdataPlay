@@ -1,16 +1,17 @@
-﻿using MajdataPlay.Extensions;
+﻿using MajdataPlay.Buffers;
+using MajdataPlay.Editor;
+using MajdataPlay.Extensions;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
+using MajdataPlay.Scenes.Game.Notes.Slide;
+using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
-using MajdataPlay.Editor;
-using MajdataPlay.Scenes.Game.Notes.Slide;
-using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
-using MajdataPlay.Buffers;
-using MajdataPlay.Settings;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -802,6 +803,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 barSprite = skin.Break;
                 starSprite = skin.Star.Break;
                 breakMaterial = BreakMaterial;
+            }
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                var skins = KustomSkin!.Split(';');
+                if (skins.Length == 1)
+                {
+                    var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    barSprite = sprite;
+                    starSprite = sprite;
+                }
+                else if (skins.Length >= 2)
+                {
+                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
+                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                }
             }
 
             foreach (var renderer in barRenderers)

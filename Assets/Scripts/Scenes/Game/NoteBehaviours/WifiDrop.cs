@@ -1,17 +1,19 @@
 ﻿using MajdataPlay.Buffers;
 using MajdataPlay.Collections;
 using MajdataPlay.Extensions;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
 using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Utils;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
+using System.IO;
 using System.Linq;
-using MajdataPlay.Settings;
-using UnityEngine;
 using System.Runtime.CompilerServices;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -603,6 +605,34 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 starSprite = skin.Star.Break;
                 breakMaterial = BreakMaterial;
             }
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                var skins = KustomSkin!.Split(';');
+
+                if (skins.Length == 1)
+                {
+                    var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+
+                    Sprite[] wifi = new Sprite[11];
+                    for (var j = 0; j < 11; j++)
+                        wifi[j] = sprite;
+                    barSprites = wifi;
+
+                    starSprite = sprite;
+                }
+                else if (skins.Length >= 2)
+                {
+                    Sprite[] wifi = new Sprite[11];
+
+                    for (var j = 0; j < 11; j++)
+                        wifi[j] = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1].Insert(skins[1].Length - 4, "_" + j)));
+                    barSprites = wifi;
+
+                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                }
+            }
+
             foreach (var (i, renderer) in barRenderers.WithIndex())
             {
                 renderer.color = new Color(1f, 1f, 1f, 0f);

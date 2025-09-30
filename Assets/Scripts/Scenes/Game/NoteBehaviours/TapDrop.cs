@@ -1,13 +1,17 @@
 ﻿using MajdataPlay.Buffers;
-using MajdataPlay.Scenes.Game.Buffers;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Collections;
 using MajdataPlay.IO;
 using MajdataPlay.Numerics;
+using MajdataPlay.Scenes.Game.Buffers;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Notes.Skins;
+using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
-using MajdataPlay.Settings;
+using System.Threading.Tasks;
 using UnityEngine;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -411,6 +415,12 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _tapLineRenderer.sprite = skin.GuideLines[2];
                 _exRenderer.color = skin.ExEffects[2];
             }
+
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                _thisRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
+            }
         }
         void LoadStarSkin()
         {
@@ -459,6 +469,12 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     _tapLineRenderer.sprite = skin.GuideLines[2];
                     _exRenderer.color = skin.ExEffects[2];
                 }
+            }
+
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                _thisRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
             }
         }
         RendererStatus _rendererState = RendererStatus.Off;

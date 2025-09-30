@@ -1,16 +1,17 @@
 ﻿using MajdataPlay.Buffers;
 using MajdataPlay.Extensions;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
 using MajdataPlay.Scenes.Game.Buffers;
 using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Notes.Touch;
 using MajdataPlay.Scenes.Game.Utils;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using MajdataPlay.Settings;
 using UnityEngine;
 using UnityEngine.UI;
 #nullable enable
@@ -336,6 +337,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _borderRenderer.sprite = skin.Boader_Break; // TouchHold Border
                 _pointRenderer.sprite = skin.Point_Break;
                 board_On = skin.Boader_Break;
+                board_Off = skin.Off;
                 SetFansMaterial(BreakMaterial);
             }
             else
@@ -345,7 +347,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     _fanRenderers[i].sprite = skin.Fans[i];
                 }
                 _borderRenderer.sprite = skin.Boader; // TouchHold Border
-                if(IsEach)
+                if (IsEach)
                 {
                     _pointRenderer.sprite = skin.Point_Each;
                 }
@@ -354,8 +356,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     _pointRenderer.sprite = skin.Point;
                 }
                 board_On = skin.Boader;
+                board_Off = skin.Off;
             }
-            board_Off = skin.Off;
+
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                _fanRenderers[0].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_0")));
+                _fanRenderers[1].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_1")));
+                _fanRenderers[2].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_2")));
+                _fanRenderers[3].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_3")));
+                _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_point")));
+                var border = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_border")));
+                _borderRenderer.sprite = border;
+                board_On = border;
+                board_Off = border;
+            }
         }
         protected override void Judge(float currentSec)
         {

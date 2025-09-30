@@ -1,15 +1,16 @@
-﻿using MajdataPlay.IO;
+﻿using MajdataPlay.Buffers;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
+using MajdataPlay.Scenes.Game.Buffers;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Settings;
 using MajdataPlay.Utils;
 using System;
-using UnityEngine;
-using System.Threading.Tasks;
-using MajdataPlay.Scenes.Game.Buffers;
+using System.IO;
 using System.Runtime.CompilerServices;
-using MajdataPlay.Scenes.Game.Utils;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Numerics;
-using MajdataPlay.Buffers;
-using MajdataPlay.Settings;
+using System.Threading.Tasks;
+using UnityEngine;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -714,6 +715,21 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _thisRenderer.sharedMaterial = BreakMaterial;
                 _tapLineRenderer.sprite = skin.GuideLines[2];
                 _exRenderer.color = skin.ExEffects[2];
+            }
+
+            if (IsKustom)
+            {
+                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                _holdSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
+
+                _holdOnSprite = _holdSprite;
+                _holdOffSprite = _holdSprite;
+                var onSkin = Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_on"));
+                var offSkin = Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_off"));
+                if (File.Exists(onSkin))
+                    _holdOnSprite = SpriteLoader.Load(onSkin);
+                if (File.Exists(offSkin))
+                    _holdOffSprite = SpriteLoader.Load(offSkin);
             }
 
             RendererState = RendererStatus.Off;
