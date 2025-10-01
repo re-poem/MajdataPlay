@@ -487,6 +487,7 @@ namespace MajdataPlay.Scenes.Game
                     IsEX = note.IsEx,
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
+                    IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
@@ -547,6 +548,7 @@ namespace MajdataPlay.Scenes.Game
                     IsEX = note.IsEx,
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
+                    IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
@@ -633,6 +635,7 @@ namespace MajdataPlay.Scenes.Game
                     IsEX = note.IsEx,
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
+                    IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
@@ -701,6 +704,7 @@ namespace MajdataPlay.Scenes.Game
                     IsEX = false,
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
+                    IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
@@ -768,6 +772,7 @@ namespace MajdataPlay.Scenes.Game
                     IsEX = false,
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
+                    IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
@@ -1238,8 +1243,9 @@ namespace MajdataPlay.Scenes.Game
             SliCompo.ConnectInfo = info;
             SliCompo.IsBreak = note.IsSlideBreak;
             SliCompo.IsEach = isEach || multiple > 1;
-            SliCompo.IsKustom = note.IsKustomSlide;
+            SliCompo.IsKustom = note.IsSlideKustom;
             SliCompo.IsSlient = note.IsSlient;
+            SliCompo.IsUnplayable = note.IsSlideUnplayable;
             SliCompo.KustomSkin = note.KustomSkin;
             SliCompo.KustomWav = note.KustomWav;
             SliCompo.IsMirror = isMirror;
@@ -1325,8 +1331,9 @@ namespace MajdataPlay.Scenes.Game
 
             WifiCompo.IsBreak = note.IsSlideBreak;
             WifiCompo.IsEach = isEach || multiple > 1;
-            WifiCompo.IsKustom = note.IsKustomSlide;
+            WifiCompo.IsKustom = note.IsSlideKustom;
             WifiCompo.IsSlient = note.IsSlient;
+            WifiCompo.IsUnplayable = note.IsUnplayable;
             WifiCompo.KustomSkin = note.KustomSkin;
             WifiCompo.KustomWav = note.KustomWav;
             WifiCompo.IsJustR = isJustR;

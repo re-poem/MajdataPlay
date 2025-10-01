@@ -85,6 +85,13 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => _isSlient = value;
         }
+        public bool IsUnplayable
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isUnplayable;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _isUnplayable = value;
+        }
         public string? KustomSkin
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -472,6 +479,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         bool _isKustom = false;
         [ReadOnlyField, SerializeField]
         bool _isSlient = false;
+        [ReadOnlyField, SerializeField]
+        bool _isUnplayable = false;
         [ReadOnlyField, SerializeField]
         string? _kustomSkin = null;
         [ReadOnlyField, SerializeField]

@@ -141,6 +141,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             IsEX = poolingInfo.IsEX;
             IsKustom = poolingInfo.IsKustom;
             IsSlient = poolingInfo.IsSlient;
+            IsUnplayable = poolingInfo.IsUnplayable;
             KustomSkin = poolingInfo.KustomSkin;
             KustomWav = poolingInfo.KustomWav;
             UsingSV = poolingInfo.UsingSV;

@@ -18,6 +18,7 @@ namespace MajdataPlay.Scenes.Game.Buffers
         public bool IsEX { get; init; }
         public bool IsKustom { get; init; }
         public bool IsSlient { get; init; }
+        public bool IsUnplayable { get; init; }
         public string? KustomSkin { get; init; }
         public string? KustomWav { get; init; }
         public int UsingSV { get; init; }
