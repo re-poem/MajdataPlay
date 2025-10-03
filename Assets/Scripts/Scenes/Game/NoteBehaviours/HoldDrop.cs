@@ -5,6 +5,7 @@ using MajdataPlay.Scenes.Game.Buffers;
 using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
+using MajdataPlay.Timer;
 using MajdataPlay.Utils;
 using System;
 using System.IO;
@@ -346,10 +347,37 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var holdTime = timing - Length;
             var holdDistance = holdTime * Speed + 4.8f;
 
+
+            var fakeTiming = GetFakeTimeSpanToArriveTiming();
+            var fakeDistance = fakeTiming * Speed + 4.8f;
+            //var fakeScaleRate = _noteAppearRate;
+            var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+
+            var fakeRemaining = GetFakeRemainingTimeWithoutOffset();
+            var fakeHoldTime = fakeTiming - (Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing));
+            var fakeHoldDistance = fakeHoldTime * Speed + 4.8f;
+
+            switch (UsingSV)
+            {
+                case 0:
+                    fakeTiming = timing;
+                    fakeDistance = distance;
+                    fakeDestScale = destScale;
+                    fakeRemaining = remaining;
+                    fakeHoldTime = holdTime;
+                    fakeHoldDistance = holdDistance;
+                    break;
+                case 1:
+                    break;
+                default:
+                    // TODO: Sub-SV
+                    break;
+            }
+
             switch (State)
             {
                 case NoteStatus.Initialized:
-                    if (destScale >= 0f)
+                    if (fakeDestScale >= 0f)
                     {
                         //transform.rotation = Quaternion.Euler(0, 0, -22.5f + -45f * (StartPos - 1));
                         //_tapLineTransform.rotation = transform.rotation;
@@ -369,12 +397,12 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     //}
                     return;
                 case NoteStatus.Scaling:
-                    if (destScale > 0.3f)
+                    if (fakeDestScale > 0.3f)
                         SetTapLineActive(true);
-                    if (distance < 1.225f)
+                    if (fakeDestScale < 1.225f)
                     {
-                        Distance = distance;
-                        Transform.localScale = new Vector3(destScale, destScale) * USERSETTING_HOLD_SCALE;
+                        Distance = fakeDistance;
+                        Transform.localScale = new Vector3(fakeDestScale, fakeDestScale) * USERSETTING_HOLD_SCALE;
                     }
                     else
                     {
@@ -384,36 +412,35 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     break;
                 case NoteStatus.Running:
-                    if (remaining == 0)
+                    if (fakeRemaining == 0)
                     {
                         State = NoteStatus.Arrived;
                         goto case NoteStatus.Arrived;
                     }
-                    if (holdDistance < 1.225f && distance >= 4.8f) // 头到达 尾未出现
+                    if (fakeHoldDistance < 1.225f && fakeDistance >= 4.8f && distance >= 4.8f) // 头到达 尾未出现
                     {
-                        holdDistance = 1.225f;
-                        distance = 4.8f;
+                        fakeHoldDistance = 1.225f;
+                        fakeDistance = 4.8f;
                     }
-                    else if (holdDistance < 1.225f && distance < 4.8f) // 头未到达 尾未出现
+                    else if (fakeHoldDistance < 1.225f && fakeDistance < 4.8f) // 头未到达 尾未出现
                     {
-                        holdDistance = 1.225f;
+                        fakeHoldDistance = 1.225f;
                     }
-                    else if (holdDistance >= 1.225f && distance >= 4.8f) // 头到达 尾出现
+                    else if (fakeHoldDistance >= 1.225f && fakeDistance >= 4.8f && distance >= 4.8f) // 头到达 尾出现
                     {
-                        distance = 4.8f;
-
+                        fakeDistance = 4.8f;
                         SetEndActive(true);
                         //_endRenderer.enabled = true;
                     }
-                    else if (holdDistance >= 1.225f && distance < 4.8f) // 头未到达 尾出现
+                    else if (fakeHoldDistance >= 1.225f && fakeDistance < 4.8f) // 头未到达 尾出现
                     {
                         SetEndActive(true);
                         //_endRenderer.enabled = true;
                     }
-                    Distance = distance;
-                    var dis = (distance - holdDistance) / 2 + holdDistance;
-                    var size = (distance - holdDistance + 1.4f * USERSETTING_HOLD_SCALE) / USERSETTING_HOLD_SCALE;
-                    var lineScale = Mathf.Abs(distance / 4.8f);
+                    Distance = fakeDistance;
+                    var dis = (fakeDistance - fakeHoldDistance) / 2 + fakeHoldDistance;
+                    var size = (fakeDistance - fakeHoldDistance + 1.4f * USERSETTING_HOLD_SCALE) / USERSETTING_HOLD_SCALE;
+                    var lineScale = Mathf.Abs(fakeDistance / 4.8f);
 
                     lineScale = lineScale >= 1f ? 1f : lineScale;
 
@@ -425,7 +452,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     
                     break;
                 case NoteStatus.Arrived:
-                    var endTiming = timing - Length;
+                    var endTiming = fakeTiming - Length;
                     var endDistance = endTiming * Speed + 4.8f;
                     _tapLineTransform.localScale = new Vector3(1f, 1f, 1f);
 

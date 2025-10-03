@@ -120,6 +120,7 @@ namespace MajdataPlay.Scenes.Game.Buffers
             eachLine.DistanceProvider = distanceProvider;
             eachLine.NoteA = noteA;
             eachLine.NoteB = noteB;
+            eachLine.UsingSV = noteA!.UsingSV != 1 ? noteA!.UsingSV : noteB!.UsingSV; //其中一个不为1就用哪个
             eachLine.Initialize(info);
 
             return true;

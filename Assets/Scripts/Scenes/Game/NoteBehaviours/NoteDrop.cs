@@ -145,6 +145,11 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _noteController.ThisFrameSec;
         }
+        public float FakeThisFrameSec
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _noteController.FakeThisFrameSec;
+        }
 
         protected bool IsUseButtonRingForTouch
         {
@@ -345,6 +350,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual float GetTimeSpanToArriveTiming() => ThisFrameSec - Timing;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual float GetFakeTimeSpanToArriveTiming() => FakeThisFrameSec - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing);
         /// <summary>
         /// Gets the time offset from the current moment to the answer frame.
         /// </summary>

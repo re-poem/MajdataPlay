@@ -37,6 +37,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         public bool IsInitialized => State >= NoteStatus.Initialized;
 
         public float timing;
+        public int UsingSV = 1;
         public int startPosition = 1;
         public int curvLength = 1;
         public float speed = 1;
@@ -69,6 +70,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             startPosition = poolingInfo.StartPos;
             timing = poolingInfo.Timing;
             speed = poolingInfo.Speed;
+            UsingSV = poolingInfo.UsingSV;
             curvLength = poolingInfo.CurvLength;
             _sr.sprite = _curvSprites[curvLength - 1];
             Transform.localScale = new Vector3(1.225f / 4.8f, 1.225f / 4.8f, 1f);
@@ -98,10 +100,31 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var destScale = distance * scaleRate + (1 - scaleRate * 1.225f);
             var lineScale = Mathf.Abs(distance / 4.8f);
 
+            var fakeTiming = _noteController.FakeThisFrameSec - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(this.timing);
+            var fakeDistance = DistanceProvider is not null ? DistanceProvider.Distance : fakeTiming * speed + 4.8f;
+            //var fakeScaleRate = _noteAppearRate;
+            var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+            var fakeLineScale = Mathf.Abs(fakeDistance / 4.8f);
+
+            switch (UsingSV)
+            {
+                case 0:
+                    fakeTiming = timing;
+                    fakeDistance = distance;
+                    fakeDestScale = destScale;
+                    fakeLineScale = lineScale;
+                    break;
+                case 1:
+                    break;
+                default:
+                    // TODO: Sub-SV
+                    break;
+            }
+
             switch (State)
             {
                 case NoteStatus.Initialized:
-                    if (destScale >= 0f)
+                    if (fakeDestScale >= 0f)
                     {
                         RendererState = RendererStatus.Off;
 
@@ -110,9 +133,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     return;
                 case NoteStatus.Scaling:
-                    if (destScale > 0.3f)
+                    if (fakeDestScale > 0.3f)
                         RendererState = RendererStatus.On;
-                    if (distance < 1.225f)
+                    if (fakeDistance < 1.225f)
                         Transform.localScale = new Vector3(1.225f / 4.8f, 1.225f / 4.8f, 1f);
                     else
                     {
@@ -121,7 +144,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     break;
                 case NoteStatus.Running:
-                    Transform.localScale = new Vector3(lineScale, lineScale, 1f);
+                    Transform.localScale = new Vector3(fakeLineScale, fakeLineScale, 1f);
                     if (NoteA is not null && NoteB is not null)
                     {
                         if (NoteA.State == NoteStatus.End || NoteB.State == NoteStatus.End)
@@ -130,7 +153,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                             return;
                         }
                     }
-                    else if (timing > 0)
+                    else if (fakeTiming > 0)
                     {
                         End();
                         return;

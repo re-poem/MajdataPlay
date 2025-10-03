@@ -7,10 +7,12 @@ using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
+using MajdataPlay.Timer;
 using MajdataPlay.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.VisualScripting;
 using UnityEngine;
 
 #nullable enable
@@ -302,11 +304,35 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             Autoplay();
             SensorCheck();
 
+            var timing = ThisFrameSec - Timing;
+            var stiming = ThisFrameSec - StartTiming;
+            var remaining = GetRemainingTimeWithoutOffset();
+            
+            var fakeTiming = GetFakeTimeSpanToArriveTiming();
+            var fakesTiming = FakeThisFrameSec - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(StartTiming);
+            var fakeRemaining = GetFakeRemainingTimeWithoutOffset();
+            var fakeLength = Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing);
+
+            switch (UsingSV)
+            {
+                case 0:
+                    fakeTiming = timing;
+                    fakesTiming = stiming;
+                    fakeRemaining = remaining;
+                    fakeLength = Length;
+                    break;
+                case 1:
+                    break;
+                default:
+                    // TODO: Sub-SV
+                    break;
+            }
+
             switch (State)
             {
                 case NoteStatus.Initialized:
                     SetStarActive(false);
-                    if (ThisFrameSec - Timing > 0)
+                    if (fakeTiming > 0)
                     {
                         if (!(ConnectInfo.IsConnSlide && !ConnectInfo.IsGroupPartHead))
                         {
@@ -322,8 +348,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     break;
                 case NoteStatus.Scaling:
-                    var timing = ThisFrameSec - StartTiming;
-                    if (timing > 0f)
+
+                    if (fakesTiming > 0f)
                     {
                         _starRenderer.color = new Color(1, 1, 1, 1);
                         if (!IsSlideNoHead)
@@ -344,14 +370,14 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         return;
                     }
                     // 只有当它是一个起点Slide（而非Slide Group中的子部分）的时候，才会有开始的星星渐入动画
-                    var alpha = (1f - -timing / (StartTiming - Timing)).Clamp(0, 1);
+                    var alpha = (1f - -fakesTiming / (StartTiming - Timing)).Clamp(0, 1);
 
                     _starRenderer.color = new Color(1, 1, 1, alpha);
                     starTransform.localScale = new Vector3(alpha + 0.5f, alpha + 0.5f, alpha + 0.5f);
 
                     break;
                 case NoteStatus.Running:
-                    if (GetRemainingTimeWithoutOffset() == 0)
+                    if (fakeRemaining == 0)
                     {
                         starTransform.position = _starPositions[_starPositions.Count - 1];
                         ApplyStarRotation(_starRotations[_starRotations.Count - 1]);
@@ -362,7 +388,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         State = NoteStatus.Arrived;
                         goto case NoteStatus.Arrived;
                     }
-                    var process = ((Length - GetRemainingTimeWithoutOffset()) / Length).Clamp(0, 1);
+
+
+                    var process = ((Length - fakeRemaining) / Length).Clamp(0, 1);
                     var indexProcess = (_starPositions.Count - 1) * process;
                     var index = (int)indexProcess;
                     var pos = indexProcess - index;

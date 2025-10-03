@@ -1,28 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using MajSimai;
+﻿using Cysharp.Text;
 using Cysharp.Threading.Tasks;
-using System.Threading.Tasks;
-using MajdataPlay.Utils;
-using System.Runtime.CompilerServices;
-using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Buffers;
 using MajdataPlay.Collections;
+using MajdataPlay.IO;
+using MajdataPlay.Numerics;
 using MajdataPlay.Scenes.Game.Buffers;
+using MajdataPlay.Scenes.Game.Notes;
+using MajdataPlay.Scenes.Game.Notes.Behaviours;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Notes.Touch;
-using MajdataPlay.Scenes.Game.Notes.Behaviours;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
-using MajdataPlay.Scenes.Game.Notes;
-using System.Buffers;
-using System.Threading;
+using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
-using MajdataPlay.Buffers;
-using Cysharp.Text;
+using MajdataPlay.Timer;
+using MajdataPlay.Utils;
+using MajSimai;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace MajdataPlay.Scenes.Game
 {
@@ -286,6 +287,12 @@ namespace MajdataPlay.Scenes.Game
                 for (var i = 0; i < maiChart.NoteTimings.Length; i++)
                 {
                     var timing = maiChart.NoteTimings[i];
+                    var svList = Majdata<GamePlayManager>.Instance!.SVList;
+                    if (svList.Count == 0 || svList.ElementAt(svList.Count - 1).Value != timing.SVeloc)
+                    {
+                        svList.Add((float)timing.Timing, timing.SVeloc);
+                        MajDebug.LogInfo(timing.SVeloc);
+                    }
                     RentedList<NotePoolingInfo?> eachNotes = new();
                     RentedList<ITouchGroupInfoProvider> members = new();
                     var foldedNotes = NoteCreateHelper.NoteFolding(timing.Notes);

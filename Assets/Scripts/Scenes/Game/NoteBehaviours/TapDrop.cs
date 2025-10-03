@@ -234,10 +234,29 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var scaleRate = _noteAppearRate;
             var destScale = distance * scaleRate + (1 - scaleRate * 1.225f);
 
+            var fakeTiming = GetFakeTimeSpanToArriveTiming();
+            var fakeDistance = fakeTiming * Speed + 4.8f;
+            //var fakeScaleRate = _noteAppearRate;
+            var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+
+            switch (UsingSV)
+            {
+                case 0:
+                    fakeTiming = timing;
+                    fakeDistance = distance;
+                    fakeDestScale = destScale;
+                    break;
+                case 1:
+                    break;
+                default:
+                    // TODO: Sub-SV
+                    break;
+            }
+
             switch (State)
             {
                 case NoteStatus.Initialized:
-                    if (destScale >= 0f)
+                    if (fakeDestScale >= 0f)
                     {
                         Transform.position = _innerPos;
                         _tapLineTransform.localScale = new Vector3(1.225f / 4.8f, 1.225f / 4.8f, 1f);
@@ -249,14 +268,14 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     return;
                 case NoteStatus.Scaling:
                     {
-                        if (destScale > 0.3f)
+                        if (fakeDestScale > 0.3f)
                         {
                             SetTapLineActive(true);
                         }
-                        if (distance < 1.225f)
+                        if (fakeDistance < 1.225f)
                         {
-                            Distance = distance;
-                            Transform.localScale = new Vector3(destScale, destScale) * USERSETTING_TAP_SCALE;
+                            Distance = fakeDistance;
+                            Transform.localScale = new Vector3(fakeDestScale, fakeDestScale) * USERSETTING_TAP_SCALE;
                         }
                         else
                         {
@@ -268,9 +287,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     break;
                 case NoteStatus.Running:
                     {
-                        Distance = distance;
-                        Transform.position = _outerPos * (distance / 4.8f);
-                        var lineScale = Mathf.Abs(distance / 4.8f);
+                        Distance = fakeDistance;
+                        Transform.position = _outerPos * (fakeDistance / 4.8f);
+                        var lineScale = Mathf.Abs(fakeDistance / 4.8f);
                         _tapLineTransform.localScale = new Vector3(lineScale, lineScale, 1f);
                     }
                     break;
