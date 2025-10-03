@@ -369,8 +369,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             var fakeTiming = FakeThisFrameSec - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing);
             var fakesTiming = FakeThisFrameSec - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(StartTiming);
-            var fakeRemaining = GetFakeRemainingTimeWithoutOffset();
             var fakeLength = Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing);
+            var fakeRemaining = Math.Max(fakeLength - fakeTiming, 0);
 
             switch (UsingSV)
             {
@@ -435,7 +435,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     break;
                 case NoteStatus.Running:
-                    if (fakeRemaining == 0)
+                    if (remaining == 0)
                     {
                         for (var i = 0; i < stars.Length; i++)
                         {
@@ -445,8 +445,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         State = NoteStatus.Arrived;
                         goto case NoteStatus.Arrived;
                     }
-                    var process = ((fakeLength - fakeRemaining) / Length).Clamp(0, 1);
-
+                    var process = (fakeLength - fakesTiming) / Length;
+                    process = 1f - process;
                     for (var i = 0; i < stars.Length; i++)
                     {
                         var starTransform = starTransforms[i];
