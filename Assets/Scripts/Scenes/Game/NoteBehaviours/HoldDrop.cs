@@ -8,6 +8,15 @@ using MajdataPlay.Settings;
 using MajdataPlay.Timer;
 using MajdataPlay.Utils;
 using System;
+using UnityEngine;
+using System.Threading.Tasks;
+using MajdataPlay.Scenes.Game.Buffers;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Utils;
+using MajdataPlay.Settings;
+using MajdataPlay.Timer;
+using MajdataPlay.Utils;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -353,8 +362,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             //var fakeScaleRate = _noteAppearRate;
             var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
 
-            var fakeRemaining = GetFakeRemainingTimeWithoutOffset();
-            var fakeHoldTime = fakeTiming - (Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<GamePlayManager>.Instance!.GetPositionAtTime(Timing));
+            var fakeLength = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing);
+            var fakeHoldTime = fakeTiming - fakeLength;
             var fakeHoldDistance = fakeHoldTime * Speed + 4.8f;
 
             switch (UsingSV)
@@ -363,7 +372,6 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     fakeTiming = timing;
                     fakeDistance = distance;
                     fakeDestScale = destScale;
-                    fakeRemaining = remaining;
                     fakeHoldTime = holdTime;
                     fakeHoldDistance = holdDistance;
                     break;
@@ -399,7 +407,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 case NoteStatus.Scaling:
                     if (fakeDestScale > 0.3f)
                         SetTapLineActive(true);
-                    if (fakeDestScale < 1.225f)
+                    if (fakeDistance < 1.225f)
                     {
                         Distance = fakeDistance;
                         Transform.localScale = new Vector3(fakeDestScale, fakeDestScale) * USERSETTING_HOLD_SCALE;
