@@ -22,9 +22,6 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
-using MajdataPlay.Numerics;
-using MajdataPlay.Scenes.Game.Notes;
-using MajdataPlay.Settings.Runtime;
 using System.Collections.Generic;
 
 namespace MajdataPlay.Scenes.Game
@@ -1072,6 +1069,8 @@ namespace MajdataPlay.Scenes.Game
                         var realTimeDifference = (float)_audioSample.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
                         var realTimeDifferenceb = (float)_bgManager.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
 
+                        _thisFrameSec = timeOffset - chartOffset;
+                        _fakeThisFrameSec = ((INoteTimeProvider)this).GetPositionAtTime(_thisFrameSec);
                         var sb = ZString.CreateStringBuilder(true);
                         try
                         {
@@ -1083,10 +1082,8 @@ namespace MajdataPlay.Scenes.Game
                         {
                             sb.Dispose();
                         }
+                        break;
                     }           
-                    _thisFrameSec = timeOffset - chartOffset;
-                    _fakeThisFrameSec = ((INoteTimeProvider)this).GetPositionAtTime(_thisFrameSec);
-                    break;
             }
         }
 

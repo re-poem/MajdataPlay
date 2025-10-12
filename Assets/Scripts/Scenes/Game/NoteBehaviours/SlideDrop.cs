@@ -553,10 +553,15 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 {
                     if (IsFinished)
                     {
-                        if (UsingSV)
+                        switch (UsingSV)
                         {
-                            _judgeTiming = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_judgeTiming);
-                            _lastWaitTimeSec = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_lastWaitTimeSec);
+                            case 1:
+                                _judgeTiming = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_judgeTiming);
+                                _lastWaitTimeSec = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_lastWaitTimeSec);
+                                break;
+                            default:
+                                // TODO: Sub-SV
+                                break;
                         }
                         HideAllBar();
                         if (IsClassic)

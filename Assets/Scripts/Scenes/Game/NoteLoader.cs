@@ -499,7 +499,6 @@ namespace MajdataPlay.Scenes.Game
                     IsUnplayable = note.IsUnplayable,
                     KustomSkin = note.KustomSkin,
                     KustomWav = note.KustomWav,
-                    UsingSV = note.UsingSV,
                     IsStar = note.IsForceStar,
                     RotateSpeed = note.IsFakeRotate ? -440f : 0,
                     QueueInfo = new TapQueueInfo()
@@ -2033,7 +2032,7 @@ namespace MajdataPlay.Scenes.Game
             {
                 get => _origin.IsEx;
             }
-            public bool UsingSV
+            public int UsingSV
             {
                 get => _origin.UsingSV;
             }

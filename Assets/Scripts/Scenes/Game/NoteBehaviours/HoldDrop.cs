@@ -5,22 +5,10 @@ using MajdataPlay.Scenes.Game.Buffers;
 using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
-using MajdataPlay.Timer;
 using MajdataPlay.Utils;
-using System;
 using UnityEngine;
-using System.Threading.Tasks;
-using MajdataPlay.Scenes.Game.Buffers;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Scenes.Game.Utils;
-using MajdataPlay.Settings;
-using MajdataPlay.Timer;
-using MajdataPlay.Utils;
-using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using UnityEngine;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -420,7 +408,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     }
                     break;
                 case NoteStatus.Running:
-                    if (fakeRemaining == 0)
+                    if (remaining == 0)
                     {
                         State = NoteStatus.Arrived;
                         goto case NoteStatus.Arrived;
