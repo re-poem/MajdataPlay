@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
 //using Microsoft.Win32;
 //using System.Windows.Forms;
 //using Application = UnityEngine.Application;
@@ -64,6 +65,13 @@ namespace MajdataPlay.IO
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _sensorStatusInPreviousFrame;
         }
+#if UNITY_ANDROID
+        public static ReadOnlySpan<int> SensorClickedCountInThisFrame
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _sensorClickedCountInThisFrame;
+        }
+#endif
         public static ReadOnlySpan<bool> TouchPanelRawData
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -257,6 +265,9 @@ namespace MajdataPlay.IO
         readonly static Memory<bool> _sensorStates = new bool[35];
         readonly static SwitchStatus[] _sensorStatusInPreviousFrame = new SwitchStatus[33];
         readonly static SwitchStatus[] _sensorStatusInThisFrame = new SwitchStatus[33];
+#if UNITY_ANDROID
+        readonly static int[] _sensorClickedCountInThisFrame = new int[33];
+#endif
 
         static bool _useDummy = false;
         readonly static bool _isBtnDebounceEnabled = false;
@@ -292,13 +303,24 @@ namespace MajdataPlay.IO
                 }
                 _sensorLastTriggerTimes[i] = TimeSpan.Zero;
             }
+            var len = _cachedPositions.Length;
+            for (var i = 0; i < len; i++)
+            {
+                _cachedPositions[i] = new ulong?[len];
+            }
+            //for (var i = 0; i < 8; i++)
+            //{
+            //    _touchRecords.Add((SensorArea)i, new(10));
+            //}
             MajEnv.OnApplicationQuit += OnApplicationQuit;
         }
         internal static void Init(IReadOnlyDictionary<int, int> instanceID2SensorIndexMappingTable)
         {
             Input.multiTouchEnabled = true;
+            EnhancedTouchSupport.Enable();
             _instanceID2SensorIndexMappingTable = instanceID2SensorIndexMappingTable;
-
+            _lastScreenHeight = Screen.height;
+            _lastScreenWidth = Screen.width;
 #if UNITY_STANDALONE
             IODeviceDetect();
             ButtonRing.Init();
@@ -397,8 +419,12 @@ namespace MajdataPlay.IO
             const int GENERAL_HID_2P_VID = 3235;
 
             var hidDevices = HidManager.Devices;
+#if ENABLE_IL2CPP
+            var serialPorts = "NotSupported";
+#else
             var serialPorts = SerialPort.GetPortNames();
-            
+#endif
+
             var ioSettings = MajEnv.Settings.IO;
             var playerIndex = ioSettings.InputDevice.Player;
             var buttonRingSettings = ioSettings.InputDevice.ButtonRing;
@@ -653,12 +679,24 @@ namespace MajdataPlay.IO
         {
             var buttons = _buttons.Span;
             var sensors = _sensors.Span;
+            
             try
             {
 #if UNITY_STANDALONE
                 ButtonRing.OnPreUpdate();
                 TouchPanel.OnPreUpdate();
+#elif UNITY_ANDROID
+                Array.Fill(_sensorClickedCountInThisFrame, 0);
 #endif
+                var height = Screen.height;
+                var width = Screen.width;
+
+                if(height != _lastScreenHeight || width != _lastScreenWidth)
+                {
+                    _lastScreenWidth = width;
+                    _lastScreenHeight = height;
+                    _version++;
+                }
 
                 UpdateMousePosition();
                 UpdateSensorState();

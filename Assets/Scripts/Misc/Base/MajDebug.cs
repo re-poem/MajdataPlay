@@ -1,16 +1,13 @@
 ﻿using Cysharp.Text;
-using MajdataPlay.Utils;
+using MajdataPlay.Settings;
 using System;
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 #nullable enable
@@ -46,7 +43,6 @@ namespace MajdataPlay
                 }
                 _isInited = true;
             }
-
             TaskScheduler.UnobservedTaskException += (sender, args) =>
             {
                 LogException(args.Exception);
@@ -54,6 +50,7 @@ namespace MajdataPlay
             };
             StartLogWritebackTask();
             MajEnv.OnApplicationQuit += OnApplicationQuit;
+            MajEnv.OnSave += OnSave;
             Application.logMessageReceivedThreaded += (string condition, string stackTrace, LogType type) =>
             {
                 var sb = ZString.CreateStringBuilder();
@@ -87,7 +84,7 @@ namespace MajdataPlay
                 StackTrace = string.Empty,
                 Level = level
             };
-#if UNITY_EDITOR
+#if UNITY_EDITOR || (UNITY_ANDROID && DEBUG)
             _unityLogger.Log(ToUnityLogLevel(level), sb.ToString());
 #endif
 #if UNITY_EDITOR || DEBUG
@@ -129,7 +126,7 @@ namespace MajdataPlay
             Log(obj, LogLevel.Error);
         }
         
-        public static void OnApplicationQuit()
+        static void OnApplicationQuit()
         {
             try
             {
@@ -152,6 +149,15 @@ namespace MajdataPlay
             {
                 MajEnv.OnApplicationQuit -= OnApplicationQuit;
             }
+        }
+        static void OnSave()
+        {
+            if (_fileStream is null)
+            {
+                return;
+            }
+            var sb = ZString.CreateStringBuilder();
+            WriteLog(ref sb);
         }
         static string GetStackTrack()
         {
@@ -211,10 +217,13 @@ namespace MajdataPlay
             {
                 while (_logQueue.TryDequeue(out var log))
                 {
-                    var condition = log.Condition;
+                    using var condition = log.Condition;
+                    if(log.Level < (MajEnv.Settings?.Debug.DebugLevel ?? LogLevel.Debug))
+                    {
+                        continue;
+                    }
                     LOG_OUTPUT_FORMAT.FormatTo(ref sb, log.Date, log.Level);
                     sb.Append(condition.AsSpan());
-                    condition.Dispose();
                     if (!string.IsNullOrEmpty(log.StackTrace))
                     {
                         sb.AppendLine();
@@ -256,7 +265,7 @@ namespace MajdataPlay
             public string? StackTrace { get; set; }
             public LogLevel Level { get; init; }
         }
-        enum LogLevel
+        internal enum LogLevel
         {
             Debug,
             Info,

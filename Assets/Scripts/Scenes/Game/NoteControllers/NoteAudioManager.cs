@@ -1,15 +1,18 @@
-using UnityEngine;
-using MajdataPlay.IO;
-using MajdataPlay.Utils;
+using MajdataPlay.Buffers;
+using MajdataPlay.Collections;
 using MajdataPlay.Extensions;
-using System;
-using System.Threading.Tasks;
+using MajdataPlay.IO;
+using MajdataPlay.Settings;
+using MajdataPlay.Utils;
 using MajSimai;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using MajdataPlay.Collections;
-using MajdataPlay.Settings;
-using MajdataPlay.Buffers;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Unity.IL2CPP.CompilerServices;
+using UnityEngine;
+using UnityEngine.Profiling;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Controllers
 {
@@ -103,15 +106,24 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
             _rentedArrayForAnswerSoundPoints = Array.Empty<AnswerSoundPoint>();
             _answerTimingPoints = Memory<AnswerSoundPoint>.Empty;
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void OnPreUpdate()
         {
+            Profiler.BeginSample("NoteAudioManager.OnPreUpdate");
             for (var i = 0; i < _noteSFXPlaybackRequests.Length; i++)
             {
                 _noteSFXPlaybackRequests[i] = false;
             }
+            Profiler.EndSample();
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void OnLateUpdate()
         {
+            Profiler.BeginSample("NoteAudioManager.OnLateUpdate");
             AnswerSFXUpdate();
             for (var i = 0; i < _noteSFXPlaybackRequests.Length; i++)
             {
@@ -215,7 +227,11 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                         break;
                 }
             }
+            Profiler.EndSample();
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void AnswerSFXUpdate()
         {
             try
@@ -258,6 +274,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                 MajDebug.LogException(e);
             }
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PlayTapSound(in NoteJudgeResult judgeResult)
         {
             if (judgeResult.IsMissOrTooFast)
@@ -305,6 +324,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                     break;
             }
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void PlayBreakTapSound(in NoteJudgeResult judgeResult)
         {
             switch (judgeResult.Grade)
@@ -433,17 +455,25 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
             }
             _isTouchHoldRiserPlaying = false;
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PlayTouchSound()
         {
             _noteSFXPlaybackRequests[TOUCH] = true;
             //_audioManager.PlaySFX("touch.wav");
         }
-
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PlayHanabiSound()
         {
             _noteSFXPlaybackRequests[FIREWORK] = true;
             //_audioManager.PlaySFX("touch_hanabi.wav");
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PlayTouchHoldSound()
         {
             _noteSFXPlaybackRequests[TOUCHHOLD] = true;
@@ -451,12 +481,17 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
             //if(!riser.IsPlaying)
             //    _audioManager.PlaySFX("touch_Hold_riser.wav");
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void StopTouchHoldSound()
         {
             _noteSFXPlaybackRequests[TOUCHHOLD] = false;
             //_audioManager.StopSFX("touch_Hold_riser.wav");
         }
-
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PlaySlideSound(bool isBreak)
         {
             if (isBreak)
@@ -470,6 +505,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                 //_audioManager.PlaySFX("slide.wav");
             }
         }
+        [Il2CppSetOption(Option.NullChecks, false)]
+        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public void PlayBreakSlideEndSound()
         {

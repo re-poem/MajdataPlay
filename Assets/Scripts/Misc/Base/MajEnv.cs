@@ -6,6 +6,8 @@ using MajdataPlay.Numerics;
 using MajdataPlay.Settings;
 using MajdataPlay.Settings.Runtime;
 using MajdataPlay.Utils;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -13,10 +15,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.Scripting;
 #nullable enable
 namespace MajdataPlay
@@ -36,6 +37,12 @@ namespace MajdataPlay
 
         public static event Action? OnApplicationQuit;
         public static event Action? OnSave;
+
+#if UNITY_ANDROID
+        public static string HTTP_USER_AGENT { get; } = $"MajdataPlay Android/{MajInstances.GameVersion.ToString()}";
+#else
+        public static string HTTP_USER_AGENT { get; } = $"MajdataPlay/{MajInstances.GameVersion.ToString()}";
+#endif
         internal static HardwareEncoder HWEncoder { get; } = HardwareEncoder.None;
         internal static RunningMode Mode { get; set; } = RunningMode.Play;
 #if UNITY_EDITOR
@@ -46,6 +53,22 @@ namespace MajdataPlay
 #if UNITY_STANDALONE_WIN
         public static LibVLC VLCLibrary { get; private set; }
 #endif
+        public static int AndroidSdkVersion 
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            get; 
+            private set;
+#else
+            get
+            {
+                throw new NotSupportedException();
+            }
+            private set
+            {
+                throw new NotSupportedException();
+            }
+#endif
+        }
         public static string RootPath { get; private set; } = string.Empty;
         public static string AssetsPath { get; private set; } = string.Empty;
         public static string CachePath { get; private set; } = string.Empty;
@@ -67,18 +90,20 @@ namespace MajdataPlay
         public static Material HoldShineMaterial { get; }
         public static Thread MainThread { get; } = Thread.CurrentThread;
         public static Process GameProcess { get; } = Process.GetCurrentProcess();
-        public static HttpClient SharedHttpClient { get; } = new HttpClient(new HttpClientHandler()
+        readonly static HttpClientHandler _httpClientHandler = new HttpClientHandler()
         {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
             Proxy = WebRequest.GetSystemWebProxy(),
             UseProxy = true,
             UseCookies = true,
             CookieContainer = new CookieContainer(),
-        })
+        };
+        public static HttpClient SharedHttpClient { get; } = new HttpClient(_httpClientHandler)
         {
             Timeout = TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS),
             DefaultRequestHeaders = 
             {
-                UserAgent = { new ProductInfoHeaderValue("MajPlay", MajInstances.GameVersion.ToString()) },
+                UserAgent = { new ProductInfoHeaderValue("MajdataPlay", MajInstances.GameVersion.ToString()) },
             }
         };
         public static GameSetting Settings { get; private set; }
@@ -90,14 +115,14 @@ namespace MajdataPlay
                 return _globalCTS.Token;
             }
         }
-        public static JsonSerializerOptions UserJsonReaderOption { get; } = new()
+        public static JsonSerializerSettings UserJsonReaderOption { get; } = new()
         {
+            Formatting = Formatting.Indented,
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
             Converters =
             {
-                new JsonStringEnumConverter()
-            },
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            WriteIndented = true
+                new StringEnumConverter()
+            }
         };
 
         static string _runtimeConfigPath = string.Empty;
@@ -116,10 +141,65 @@ namespace MajdataPlay
             RootPath = Path.Combine(Application.dataPath, "../");
             AssetsPath = Application.streamingAssetsPath;
             CachePath = Path.Combine(RootPath, "Cache");
-#else
-            RootPath = Application.persistentDataPath;
-            AssetsPath = Path.Combine(Application.persistentDataPath, "ExtStreamingAssets/");
+#elif UNITY_ANDROID
+            var versionClass = AndroidJNI.FindClass("android/os/Build$VERSION");
+            var fieldID = AndroidJNI.GetStaticFieldID(versionClass, "SDK_INT", "I");
+            AndroidSdkVersion = AndroidJNI.GetStaticIntField(versionClass, fieldID);
+
+            //if(AndroidSdkVersion >= 30)
+            //{
+            //    RootPath = Application.persistentDataPath;
+            //    AssetsPath = Path.Combine(Application.persistentDataPath, "ExtStreamingAssets/");
+            //}
+            //else
+            //{
+
+            //}
+            var androidStoragePermissions = new string[]
+                {
+                Permission.ExternalStorageRead,
+                Permission.ExternalStorageWrite,
+                };
+            var isGranted = true;
+            for (var i = 0; i < androidStoragePermissions.Length; i++)
+            {
+                var flag = 0;
+                var permission = androidStoragePermissions[i];
+            RECHECK_PERMISSION:
+                if (!Permission.HasUserAuthorizedPermission(permission))
+                {
+                    switch (flag)
+                    {
+                        case 0:
+                            Permission.RequestUserPermission(permission);
+                            flag = 1;
+                            goto RECHECK_PERMISSION;
+                        case 1:
+                            isGranted = false;
+                            goto BREAK_LOOP;
+                    }
+                    continue;
+                BREAK_LOOP:
+                    break;
+                }
+            }
+            if (isGranted)
+            {
+                RootPath = "/sdcard/Documents/MajdataPlay";
+                if (!Directory.Exists(RootPath))
+                {
+                    Directory.CreateDirectory(RootPath);
+                }
+                AssetsPath = Path.Combine(RootPath, "ExtStreamingAssets/");
+            }
+            else
+            {
+                RootPath = Application.persistentDataPath;
+                AssetsPath = Path.Combine(Application.persistentDataPath, "ExtStreamingAssets/");
+            }
             CachePath = Application.temporaryCachePath;
+#else
+            throw new NotImplementedException();
 #endif
             _runtimeConfigPath = Path.Combine(CachePath, "Runtime", "config.json");
             ChartPath = Path.Combine(RootPath, "MaiCharts");
@@ -211,6 +291,52 @@ namespace MajdataPlay
             Settings.IO.InputDevice.TouchPanel.DebounceThresholdMs = Math.Max(0, Settings.IO.InputDevice.TouchPanel.DebounceThresholdMs);
             Settings.Display.InnerJudgeDistance = Settings.Display.InnerJudgeDistance.Clamp(0, 1);
             Settings.Display.OuterJudgeDistance = Settings.Display.OuterJudgeDistance.Clamp(0, 1);
+
+#if UNITY_STANDALONE && ENABLE_MONO
+            if(Settings.Online.UseProxy)
+            {
+                if(!string.IsNullOrEmpty(Settings.Online.Proxy))
+                {
+                    if(!Uri.TryCreate(Settings.Online.Proxy, UriKind.Absolute, out var proxyUri))
+                    {
+                        MajDebug.LogError($"Invalid proxy URL: {Settings.Online.Proxy}");
+                        goto PROXY_CONFIG_EXIT;
+                    }
+                    switch (proxyUri.Scheme)
+                    {
+                        case "http":
+                        case "https":
+                            break;
+                        default:
+                            MajDebug.LogError($"Unsupported proxy scheme: {proxyUri.Scheme}");
+                            goto PROXY_CONFIG_EXIT;
+                    }
+                    var proxy = new WebProxy(proxyUri);
+                    if(!string.IsNullOrEmpty(proxyUri.UserInfo))
+                    {
+                        var parts = proxyUri.UserInfo.Split(":", 2);
+                        var username = parts[0];
+                        var password = parts.Length > 1 ? parts[1] : string.Empty;
+
+                        if(!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                        {
+                            proxy.Credentials = new NetworkCredential(username, password);
+                        }
+                        else
+                        {
+                            MajDebug.LogWarning($"Invalid proxy credentials: {proxyUri.UserInfo}");
+                        }
+                    }
+                    _httpClientHandler.Proxy = proxy;
+                }
+            }
+            else
+            {
+                _httpClientHandler.UseProxy = false;
+                _httpClientHandler.Proxy = null;
+            }
+        PROXY_CONFIG_EXIT:
+#endif
 #if !UNITY_EDITOR
             if(MainThread.Name is not null)
             {
@@ -239,6 +365,7 @@ namespace MajdataPlay
             }
 #endif
             _globalCTS.Cancel();
+            RequestSave();
             try
             {
                 if (OnApplicationQuit is not null)

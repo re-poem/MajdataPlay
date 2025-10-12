@@ -5,9 +5,9 @@ using MajdataPlay.IO;
 using MajdataPlay.Recording;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 using System.Threading;
 using UnityEngine.Scripting;
+using Newtonsoft.Json;
 #nullable enable
 namespace MajdataPlay.Settings
 {
@@ -133,8 +133,10 @@ namespace MajdataPlay.Settings
         public bool Topmost { get; set; } = false;
         [Preserve]
         public int FPSLimit { get; set; } = 120;
+#if !UNITY_ANDROID
         [Preserve]
         public bool VSync { get; set; } = true;
+#endif
     }
     [Preserve]
     public class SoundOptions
@@ -193,8 +195,10 @@ namespace MajdataPlay.Settings
         public bool SlideNoHead { get; set; } = false;
         [Preserve]
         public bool SlideNoTrack { get; set; } = false;
+#if !UNITY_ANDROID
         [Preserve]
         public bool ButtonRingForTouch { get; set; } = false;
+#endif
         [Preserve]
         public string NoteMask { get; set; } = "Disable";
 
@@ -210,6 +214,10 @@ namespace MajdataPlay.Settings
     {
         [Preserve]
         public bool Enable { get; set; } = false;
+#if UNITY_STANDALONE && ENABLE_MONO
+        public bool UseProxy { get; init; } = true;
+        public string Proxy { get; init; } = string.Empty;
+#endif
         [Preserve]
         public List<ApiEndpoint> ApiEndpoints { get; set; } = new List<ApiEndpoint>
         {
@@ -278,6 +286,10 @@ namespace MajdataPlay.Settings
         public int TouchHoldPoolCapacity { get; set; } = 16;
         [SettingVisualizationIgnore]
         public int EachLinePoolCapacity { get; set; } = 64;
+        [Preserve]
+        [SettingVisualizationIgnore]
+        [JsonProperty]
+        internal MajDebug.LogLevel DebugLevel { get; set; } = MajDebug.LogLevel.Info;
     }
     [Preserve]
     public class IOOptions

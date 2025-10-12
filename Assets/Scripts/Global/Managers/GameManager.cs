@@ -1,18 +1,20 @@
-using MajdataPlay.Utils;
-using System;
-using System.IO;
-using System.Diagnostics;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Scripting;// DO NOT REMOVE IT !!!
-using MajdataPlay.Settings;
-using MajdataPlay.Timer;
+using AOT;
 using MajdataPlay.Collections;
-using System.Reflection;
-using UnityEngine.SceneManagement;
 using MajdataPlay.IO;
 using MajdataPlay.Scenes.Test;
+using MajdataPlay.Settings;
+using MajdataPlay.Timer;
+using MajdataPlay.Utils;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;// DO NOT REMOVE IT !!!
 
 namespace MajdataPlay
 {
@@ -41,13 +43,13 @@ namespace MajdataPlay
         [SerializeField]
         bool _isEnterTest = false;
 
+        readonly static List<IntPtr> _windowHandles = new ();
         readonly static ReadOnlyMemory<ITimeProvider> _builtInTimeProviders = MajTimeline.BuiltInTimeProviders;
 
         void Start()
         {
             MajEnv.InitPath();
             MajDebug.Init();
-            //HttpTransporter.Timeout = TimeSpan.FromMilliseconds(10000);
             var s = "\n";
             s += $"################ MajdataPlay Startup Check ################\n";
             s += $"     OS       : {SystemInfo.operatingSystem}\n";
@@ -59,7 +61,9 @@ namespace MajdataPlay
             MajDebug.LogInfo(s);
             MajDebug.LogInfo($"PID: {MajEnv.GameProcess.Id}");
             MajDebug.LogInfo($"Version: {MajInstances.GameVersion}");
-            
+#if UNITY_ANDROID
+            MajDebug.LogInfo($"AndroidSdkVersion: {MajEnv.AndroidSdkVersion}");
+#endif
             MajEnv.Init();
             MajInstances.FPSDisplayer.Init();
             MajInstances.AudioManager.Init();
@@ -125,7 +129,11 @@ namespace MajdataPlay
             envType.GetField("<HoldShineMaterial>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic)
                    .SetValue(null, _holdShineMaterial);
             QualitySettings.SetQualityLevel((int)Setting.Display.RenderQuality, true);
+#if UNITY_ANDROID
+            QualitySettings.vSyncCount = 0;
+#else
             QualitySettings.vSyncCount = Setting.Display.VSync ? 1 : 0;
+#endif
             QualitySettings.maxQueuedFrames = Setting.Debug.MaxQueuedFrames;
             DetectHWEncoder();
             if (Setting.Display.Topmost)
@@ -174,45 +182,47 @@ namespace MajdataPlay
         }
         void SetWindowTopmost()
         {
-#if !UNITY_EDITOR && UNITY_STANDALONE_WIN
-            var handles = new List<IntPtr>();
-            Win32API.EnumWindows((hWnd, lParam) =>
-            {
-                Win32API.GetWindowThreadProcessId(hWnd, out int processId);
-
-                if (processId == lParam && Win32API.IsWindowVisible(hWnd))
-                {
-                    handles.Add(hWnd);
-                }
-                return true;
-            }, Process.GetCurrentProcess().Id);
-            MajDebug.LogDebug($"Found window count: {handles.Count}");
-            foreach (var handle in handles)
+#if (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
+            Win32API.EnumWindows(EnumWindowsCallback, Process.GetCurrentProcess().Id);
+            MajDebug.LogDebug($"Found window count: {_windowHandles.Count}");
+            foreach (var handle in _windowHandles)
             {
                 Win32API.SetWindowPos(handle, Win32API.HWND_TOPMOST, 0, 0, 0, 0, Win32API.SWP_NOMOVE | Win32API.SWP_NOSIZE);
             }
 #endif
         }
+        [MonoPInvokeCallback(typeof(Win32API.EnumWindowsProc))]
+        static bool EnumWindowsCallback(IntPtr hWnd, int lParam)
+        {
+            _windowHandles.Clear();
+            Win32API.GetWindowThreadProcessId(hWnd, out int processId);
+
+            if (processId == lParam && Win32API.IsWindowVisible(hWnd))
+            {
+                _windowHandles.Add(hWnd);
+            }
+            return true;
+        }
         void EnterTestMode()
         {
             IOListener.NextScene = "Title";
-            #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN && ENABLE_MONO
             MajEnv.GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
-            #endif
+#endif
             SceneManager.LoadScene("Test");
         }
         void EnterTitle()
         {
-            #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN && ENABLE_MONO
             MajEnv.GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
-            #endif
+#endif
             SceneManager.LoadScene("Title");
         }
         void EnterView()
         {
-            #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN && ENABLE_MONO
             MajEnv.GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-            #endif
+#endif
             SceneManager.LoadScene("View");
         }
         public void ApplyScreenConfig()
@@ -279,20 +289,20 @@ namespace MajdataPlay
 
         public void EnableGC()
         {
-            GC.Collect();
-            return;
-#if !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR //&& false
             GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
             MajDebug.LogWarning("GC has been enabled");
+#else
+            GC.Collect();
 #endif
         }
         public void DisableGC() 
         {
-            GC.Collect();
-            return;
-#if !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR //&& false
             GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
             MajDebug.LogWarning("GC has been disabled");
+#else
+            GC.Collect();
 #endif
         }
     }

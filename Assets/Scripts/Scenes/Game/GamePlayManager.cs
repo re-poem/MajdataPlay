@@ -1,28 +1,28 @@
-﻿using MajdataPlay.Settings;
+﻿using Cysharp.Text;
+using Cysharp.Threading.Tasks;
+using MajdataPlay.Editor;
+using MajdataPlay.Extensions;
 using MajdataPlay.IO;
 using MajdataPlay.Net;
+using MajdataPlay.Numerics;
+using MajdataPlay.Recording;
+using MajdataPlay.Scenes.Game.Notes;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.List;
+using MajdataPlay.Settings;
+using MajdataPlay.Settings.Runtime;
+using MajdataPlay.Timer;
 using MajdataPlay.Utils;
-using MajdataPlay.Extensions;
 using MajSimai;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using Cysharp.Threading.Tasks;
-using MajdataPlay.Timer;
-using Cysharp.Text;
-using MajdataPlay.Scenes.List;
-using System.Text.Json;
-using MajdataPlay.Editor;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Recording;
 using UnityEngine.Profiling;
-using MajdataPlay.Numerics;
-using MajdataPlay.Scenes.Game.Notes;
-using MajdataPlay.Settings.Runtime;
-using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace MajdataPlay.Scenes.Game
 {
@@ -31,7 +31,13 @@ namespace MajdataPlay.Scenes.Game
     {
         public float NoteSpeed { get; private set; } = 7f;
         public float TouchSpeed { get; private set; } = 7f;
-        public bool IsClassicMode => _setting.Judge.Mode == JudgeModeOption.Classic;
+        public bool IsClassicMode
+        {
+            get
+            {
+                return (_setting?.Judge.Mode ?? JudgeModeOption.Modern) == JudgeModeOption.Classic;
+            }
+        }
         // Timeline
         /// <summary>
         /// The timing of the current Update<para>Unit: Second</para>
@@ -117,8 +123,8 @@ namespace MajdataPlay.Scenes.Game
         List<Func<float, float>> _positionFunctions = new();
         //List<float> _segmentStarts = [];
 
-        bool _isTrackSkipAvailable = MajEnv.Settings.Game.TrackSkip;
-        bool _isFastRetryAvailable = MajEnv.Settings.Game.FastRetry;
+        bool _isTrackSkipAvailable = MajEnv.Settings?.Game.TrackSkip ?? false;
+        bool _isFastRetryAvailable = MajEnv.Settings?.Game.FastRetry ?? false;
         float? _allNotesFinishedTiming = null;
         float _2367PressTime = 0;
         float _3456PressTime = 0;
@@ -133,7 +139,7 @@ namespace MajdataPlay.Scenes.Game
         float _displayOffsetSec = 0f;
 
         Task _generateAnswerSFXTask = Task.CompletedTask;
-        Text _errText;
+        TextMeshProUGUI _errText;
         MajTimer _timer = MajTimeline.CreateTimer();
         float _audioTrackStartAt = 0f;
 
@@ -161,6 +167,8 @@ namespace MajdataPlay.Scenes.Game
         readonly CancellationTokenSource _cts = new();
         readonly ListConfig _listConfig = MajEnv.RuntimeConfig?.List ?? new();
         readonly SceneSwitcher _sceneSwitcher = MajInstances.SceneSwitcher;
+
+        readonly static Utf16PreparedFormat<float, float> ERROR_TEXT_FORMAT = ZString.PrepareUtf16<float, float>("Delta\nAudio {0:F4}\nVideo {1:F4}");
 
         #region GameLoading
 
@@ -220,7 +228,7 @@ namespace MajdataPlay.Scenes.Game
             _noteLoader = Majdata<NoteLoader>.Instance!;
             _recorderStateDisplayer = Majdata<RecorderStatusDisplayer>.Instance!;
 
-            _errText = GameObject.Find("ErrText").GetComponent<Text>();
+            _errText = GameObject.Find("ErrText").GetComponent<TextMeshProUGUI>();
             _chartRotation = _setting.Game.Rotation.Clamp(-7, 7);
             
             InitGame().Forget();
@@ -242,107 +250,83 @@ namespace MajdataPlay.Scenes.Game
             var noteMask = ModInfo.NoteMask;
             foreach (var (k,v) in danInfo!.Mods)
             {
-                switch(k)
+                switch (k)
                 {
                     case "PlaybackSpeed":
-                        if (v.ValueKind is JsonValueKind.Number && 
-                            v.TryGetSingle(out var playbackSpeed1) || (float.TryParse(v.ToString(), out playbackSpeed1)))
                         {
-                            playbackSpeed = playbackSpeed1;
+                            if (v.Type == JTokenType.Float || v.Type == JTokenType.Integer)
+                            {
+                                playbackSpeed = v.ToObject<float>();
+                            }
+                            else if (float.TryParse(v.ToString(), out var playbackSpeed1))
+                            {
+                                playbackSpeed = playbackSpeed1;
+                            }
                         }
                         break;
                     case "AllBreak":
-                        if(v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            isAllBreak = v.GetBoolean();
-                        }
-                        else if(bool.TryParse(v.ToString(), out var allBreak))
-                        {
-                            isAllBreak = allBreak;
-                        }
-                        break;
                     case "AllEx":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            isAllEx = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var allEx))
-                        {
-                            isAllEx = allEx;
-                        }
-                        break;
                     case "AllTouch":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            isAllTouch = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var allTouch))
-                        {
-                            isAllEx = allTouch;
-                        }
-                        break;
                     case "ButtonRingForTouch":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            isUseButtonRingForTouch = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var buttonRingSlide))
-                        {
-                            isUseButtonRingForTouch = buttonRingSlide;
-                        }
-                        break;
                     case "IsSlideNoHead":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            isSlideNoHead = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var slideNoHead))
-                        {
-                            isSlideNoHead = slideNoHead;
-                        }
-                        break;
                     case "IsSlideNoTrack":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                    case "SubdivideSlideJudgeGrade":
                         {
-                            isSlideNoTrack = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var slideNoTrack))
-                        {
-                            isSlideNoTrack = slideNoTrack;
+                            if (v.Type == JTokenType.Boolean)
+                            {
+                                bool value = v.ToObject<bool>();
+                                switch (k)
+                                {
+                                    case "AllBreak": isAllBreak = value; break;
+                                    case "AllEx": isAllEx = value; break;
+                                    case "AllTouch": isAllTouch = value; break;
+                                    case "ButtonRingForTouch": isUseButtonRingForTouch = value; break;
+                                    case "IsSlideNoHead": isSlideNoHead = value; break;
+                                    case "IsSlideNoTrack": isSlideNoTrack = value; break;
+                                    case "SubdivideSlideJudgeGrade": subdivideSlideJudgeGrade = value; break;
+                                }
+                            }
+                            else if (bool.TryParse(v.ToString(), out var boolValue))
+                            {
+                                switch (k)
+                                {
+                                    case "AllBreak": isAllBreak = boolValue; break;
+                                    case "AllEx": isAllEx = boolValue; break;
+                                    case "AllTouch": isAllTouch = boolValue; break;
+                                    case "ButtonRingForTouch": isUseButtonRingForTouch = boolValue; break;
+                                    case "IsSlideNoHead": isSlideNoHead = boolValue; break;
+                                    case "IsSlideNoTrack": isSlideNoTrack = boolValue; break;
+                                    case "SubdivideSlideJudgeGrade": subdivideSlideJudgeGrade = boolValue; break;
+                                }
+                            }
                         }
                         break;
                     case "AutoPlay":
-                        if (v.ValueKind is JsonValueKind.Number && v.TryGetInt32(out var modeIndex))
                         {
-                            autoplayMode = (AutoplayModeOption)modeIndex;
-                        }
-                        else if(Enum.TryParse<AutoplayModeOption>(v.ToString(), false, out var mode))
-                        {
-                            autoplayMode = mode;
+                            if (v.Type == JTokenType.Integer)
+                            {
+                                autoplayMode = (AutoplayModeOption)v.ToObject<int>();
+                            }
+                            else if (Enum.TryParse<AutoplayModeOption>(v.ToString(), out var autoplayMode1))
+                            {
+                                autoplayMode = autoplayMode1;
+                            }
                         }
                         break;
                     case "JudgeStyle":
-                        if (v.ValueKind is JsonValueKind.Number && v.TryGetInt32(out var styleIndex))
                         {
-                            judgeStyle = (JudgeStyleOption)styleIndex;
-                        }
-                        else if (Enum.TryParse<JudgeStyleOption>(v.ToString(), false, out var style))
-                        {
-                            judgeStyle = style;
+                            if (v.Type == JTokenType.Integer)
+                            {
+                                judgeStyle = (JudgeStyleOption)v.ToObject<int>();
+                            }
+                            else if (Enum.TryParse<JudgeStyleOption>(v.ToString(), out var judgeStyle1))
+                            {
+                                judgeStyle = judgeStyle1;
+                            }
                         }
                         break;
                     case "NoteMask":
                         noteMask = v.ToString();
-                        break;
-                    case "SubdivideSlideJudgeGrade":
-                        if (v.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            subdivideSlideJudgeGrade = v.GetBoolean();
-                        }
-                        else if (bool.TryParse(v.ToString(), out var ssjg))
-                        {
-                            subdivideSlideJudgeGrade = ssjg;
-                        }
                         break;
                 }
             }
@@ -454,17 +438,17 @@ namespace MajdataPlay.Scenes.Game
                 MajDebug.LogError(syntaxE);
                 return;
             }
-            catch(HttpTransmitException httpEx)
+            catch(HttpException httpEx)
             {
                 await UniTask.SwitchToMainThread();
-                MajInstances.SceneSwitcher.SetLoadingText($"{Localization.GetLocalizedText("Failed to download chart")}", Color.red);
+                MajInstances.SceneSwitcher.SetLoadingText("Failed to download chart".i18n(), Color.red);
                 MajDebug.LogError(httpEx);
                 return;
             }
             catch(InvalidAudioTrackException audioEx)
             {
                 await UniTask.SwitchToMainThread();
-                MajInstances.SceneSwitcher.SetLoadingText($"{Localization.GetLocalizedText("Failed to load chart")}\n{audioEx.Message}", Color.red);
+                MajInstances.SceneSwitcher.SetLoadingText($"{"Failed to load chart".i18n()}\n{audioEx.Message}", Color.red);
                 MajDebug.LogError(audioEx);
                 return;
             }
@@ -671,6 +655,8 @@ namespace MajdataPlay.Scenes.Game
                 throw e;
             }
             MajInstances.SceneSwitcher.SetLoadingText($"{Localization.GetLocalizedText("Loading Chart")}...\n100.00%");
+
+            _noteEffectPool.Init();
             await UniTask.Yield();
         }
         async UniTask PrepareToPlay()
@@ -924,7 +910,9 @@ namespace MajdataPlay.Scenes.Game
         internal void OnPreUpdate()
         {
             Profiler.BeginSample("GamePlayManager.OnPreUpdate");
+            Profiler.BeginSample("GamePlayManager.AudioTimeUpdate");
             AudioTimeUpdate();
+            Profiler.EndSample();
             ComponentPreUpdate();
             Profiler.EndSample();
         }
@@ -932,8 +920,12 @@ namespace MajdataPlay.Scenes.Game
         {
             Profiler.BeginSample("GamePlayManager.OnUpdate");
             NoteManagerUpdate();
+            Profiler.BeginSample("GamePlayManager.GameControlUpdate");
             GameControlUpdate();
+            Profiler.EndSample();
+            Profiler.BeginSample("GamePlayManager.FnKeyStateUpdate");
             FnKeyStateUpdate();
+            Profiler.EndSample();
             Profiler.EndSample();
         }
         internal void OnLateUpdate()
@@ -1045,7 +1037,9 @@ namespace MajdataPlay.Scenes.Game
                     _notePoolManager.OnPreUpdate();
                     break;
             }
+            Profiler.BeginSample("TimeDisplayer.OnPreUpdate");
             _timeDisplayer.OnPreUpdate();
+            Profiler.EndSample();
         }
         void NoteManagerUpdate()
         {
@@ -1137,18 +1131,30 @@ namespace MajdataPlay.Scenes.Game
                 case GamePlayStatus.Running:
                 case GamePlayStatus.Blocking:
                 case GamePlayStatus.WaitForEnd:
-                    //Do not use this!!!! This have connection with sample batch size
-                    //AudioTime = (float)audioSample.GetCurrentTime();
-                    var elapsedSeconds = _timer.ElapsedSecondsAsFloat;
-                    var playbackSpeed = PlaybackSpeed;
-                    var chartOffset = ((_chartOffset + _audioTimeOffsetSec) / playbackSpeed) - _displayOffsetSec;
-                    var timeOffset = elapsedSeconds - _audioStartTime;
-                    var realTimeDifference = (float)_audioSample.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
-                    var realTimeDifferenceb = (float)_bgManager.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
+                    {
+                        //Do not use this!!!! This have connection with sample batch size
+                        //AudioTime = (float)audioSample.GetCurrentTime();
+                        var elapsedSeconds = _timer.ElapsedSecondsAsFloat;
+                        var playbackSpeed = PlaybackSpeed;
+                        var chartOffset = ((_chartOffset + _audioTimeOffsetSec) / playbackSpeed) - _displayOffsetSec;
+                        var timeOffset = elapsedSeconds - _audioStartTime;
+                        var realTimeDifference = (float)_audioSample.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
+                        var realTimeDifferenceb = (float)_bgManager.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
 
+                        var sb = ZString.CreateStringBuilder(true);
+                        try
+                        {
+                            ERROR_TEXT_FORMAT.FormatTo(ref sb, Math.Abs(realTimeDifference), Math.Abs(realTimeDifferenceb));
+                            var a = sb.AsArraySegment();
+                            _errText.SetCharArray(a.Array, a.Offset, a.Count);
+                        }
+                        finally
+                        {
+                            sb.Dispose();
+                        }
+                    }           
                     _thisFrameSec = timeOffset - chartOffset;
-                    _fakeThisFrameSec = GetPositionAtTime(_thisFrameSec);
-                    _errText.text = ZString.Format("Delta\nAudio {0:F4}\nVideo {1:F4}", Math.Abs(realTimeDifference),Math.Abs(realTimeDifferenceb));             
+                    _fakeThisFrameSec = GetPositionAtTime(_thisFrameSec);                    
                     break;
             }
         }
