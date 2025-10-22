@@ -214,7 +214,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         readonly protected GameSetting _settings = MajInstances.Settings;
         protected static readonly Random _randomizer = new();
 
-        protected readonly float USERSETTING_JUDGE_OFFSET_SEC = ((MajInstances.Settings?.Judge.JudgeOffset ?? 0)  + (MajInstances.Settings?.Debug.DisplayOffset ?? 0)) * ((MajInstances.Settings?.Debug.OffsetUnit ?? OffsetUnitOption.Second) == OffsetUnitOption.Second ? 1 : FRAME_LENGTH_SEC);
+        protected readonly float USERSETTING_JUDGE_OFFSET_SEC = ((MajInstances.Settings?.Judge.JudgeOffset ?? 0) + (MajInstances.Settings?.Debug.DisplayOffset ?? 0)) * ((MajInstances.Settings?.Debug.OffsetUnit ?? OffsetUnitOption.Second) == OffsetUnitOption.Second ? 1 : FRAME_LENGTH_SEC);
         protected readonly float USERSETTING_TOUCHPANEL_OFFSET_SEC = (MajInstances.Settings?.Judge.TouchPanelOffset ?? 0) * ((MajInstances.Settings?.Debug.OffsetUnit ?? OffsetUnitOption.Second) == OffsetUnitOption.Second ? 1 : FRAME_LENGTH_SEC);
         protected readonly float USERSETTING_TAP_SCALE = MajInstances.Settings?.Display.TapScale ?? 1;
         protected readonly float USERSETTING_HOLD_SCALE = MajInstances.Settings?.Display.HoldScale ?? 1;
@@ -258,8 +258,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         protected const float SLIDE_JUDGE_CLASSIC_SEG_3RD_GREAT_MSEC = 21 * FRAME_LENGTH_MSEC;       // 21f
         protected const float SLIDE_JUDGE_GOOD_AREA_MSEC = 36 * FRAME_LENGTH_MSEC;                   // 36f
 
-        protected const float TOUCH_DISPLAY_OFFSET_SEC = 3 * FRAME_LENGTH_SEC;
-        protected const float TOUCH_HOLD_DISPLAY_OFFSET_SEC = 3 * FRAME_LENGTH_SEC;
+        protected const float TOUCH_DISPLAY_OFFSET_SEC = 0 * FRAME_LENGTH_SEC;
+        protected const float TOUCH_HOLD_DISPLAY_OFFSET_SEC = 0 * FRAME_LENGTH_SEC;
 
         protected const float HOLD_HEAD_IGNORE_LENGTH_SEC = 6 * FRAME_LENGTH_SEC;
         protected const float HOLD_TAIL_IGNORE_LENGTH_SEC = 12 * FRAME_LENGTH_SEC;
