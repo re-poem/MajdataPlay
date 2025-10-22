@@ -8,6 +8,7 @@ using MajdataPlay.Scenes.Game.Buffers;
 using MajdataPlay.Scenes.Game.Notes;
 using MajdataPlay.Scenes.Game.Notes.Behaviours;
 using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Notes.Skins;
 using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Notes.Touch;
@@ -19,10 +20,12 @@ using MajSimai;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace MajdataPlay.Scenes.Game
@@ -332,6 +335,12 @@ namespace MajdataPlay.Scenes.Game
                                         HoldTime = note.HoldTime,
                                         IsBreak = note.IsBreak,
                                         IsEx = note.IsEx,
+                                        IsKustom = note.IsKustom,
+                                        IsSlideKustom = note.IsSlideKustom,
+                                        IsSlient = note.IsSlient,
+                                        IsUnplayable = note.IsUnplayable,
+                                        KustomSkin = note.KustomSkin,
+                                        KustomWav = note.KustomWav,
                                         UsingSV = note.UsingSV,
                                         IsFakeRotate = note.IsFakeRotate,
                                         IsForceStar = note.IsForceStar,
@@ -646,8 +655,8 @@ namespace MajdataPlay.Scenes.Game
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
                     IsUnplayable = note.IsUnplayable,
-                    KustomSkin = note.KustomSkin,
-                    KustomWav = note.KustomWav,
+                    KustomSkin = note.KustomSkin.Split(';')[0],
+                    KustomWav = note.KustomWav.Split(';')[0],
                     UsingSV = note.UsingSV,
                     IsStar = true,
                     IsDouble = isDouble,
@@ -1017,6 +1026,12 @@ namespace MajdataPlay.Scenes.Game
                     subSlide.IsSlideBreak = note.IsSlideBreak;
                     subSlide.IsSlideNoHead = true;
                     subSlide.UsingSV = note.UsingSV;
+                    subSlide.IsKustom = note.IsKustom;
+                    subSlide.IsSlideKustom = note.IsSlideKustom;
+                    subSlide.IsSlient = note.IsSlient;
+                    subSlide.IsUnplayable = note.IsUnplayable;
+                    subSlide.KustomSkin = note.KustomSkin;
+                    subSlide.KustomWav = note.KustomWav;
                 }
                 preprocessSubSlides[0].IsSlideNoHead = note.IsSlideNoHead;
 
@@ -1225,7 +1240,6 @@ namespace MajdataPlay.Scenes.Game
             TapPoolingInfo?[] starInfos = new TapPoolingInfo?[multiple];
             if (!note.IsSlideNoHead)
             {
-
                 for (var i = 0; i < multiple; i++)
                 {
                     var _info = CreateStar(startPos, note, timing);
@@ -1975,6 +1989,12 @@ namespace MajdataPlay.Scenes.Game
                             HoldTime = key.HoldTime,
                             IsBreak = key.IsBreak,
                             IsEx = key.IsEx,
+                            IsKustom = key.IsKustom,
+                            IsSlideKustom = key.IsSlideKustom,
+                            IsSlient = key.IsSlient,
+                            IsUnplayable = key.IsUnplayable,
+                            KustomSkin = key.KustomSkin,
+                            KustomWav = key.KustomWav,
                             UsingSV = key.UsingSV,
                             IsFakeRotate = key.IsFakeRotate,
                             IsForceStar = key.IsForceStar,
@@ -2031,6 +2051,30 @@ namespace MajdataPlay.Scenes.Game
             public bool IsEx
             {
                 get => _origin.IsEx;
+            }
+            public bool IsKustom
+            {
+                get => _origin.IsKustom;
+            }
+            public bool IsSlideKustom
+            {
+                get => _origin.IsSlideKustom;
+            }
+            public bool IsSlient
+            {
+                get => _origin.IsSlient;
+            }
+            public bool IsUnplayable
+            {
+                get => _origin.IsUnplayable;
+            }
+            public string KustomSkin
+            {
+                get => _origin.KustomSkin;
+            }
+            public string KustomWav
+            {
+                get => _origin.KustomWav;
             }
             public int UsingSV
             {

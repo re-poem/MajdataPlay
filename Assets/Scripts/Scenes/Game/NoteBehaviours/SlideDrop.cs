@@ -879,13 +879,18 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 if (skins.Length == 1)
                 {
                     var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
-                    barSprite = sprite;
                     starSprite = sprite;
+                    barSprite = sprite;
                 }
-                else if (skins.Length >= 2)
+                else if (skins.Length == 2)
                 {
-                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
                     starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
+                }
+                else if (skins.Length >= 3)
+                {
+                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
+                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[2]));
                 }
             }
 

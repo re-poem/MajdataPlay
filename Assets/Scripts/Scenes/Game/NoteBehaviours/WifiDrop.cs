@@ -650,22 +650,30 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 {
                     var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
 
+                    starSprite = sprite;
+
                     Sprite[] wifi = new Sprite[11];
                     for (var j = 0; j < 11; j++)
                         wifi[j] = sprite;
                     barSprites = wifi;
-
-                    starSprite = sprite;
                 }
-                else if (skins.Length >= 2)
+                else if (skins.Length == 2)
                 {
-                    Sprite[] wifi = new Sprite[11];
+                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
 
+                    Sprite[] wifi = new Sprite[11];
                     for (var j = 0; j < 11; j++)
                         wifi[j] = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1].Insert(skins[1].Length - 4, "_" + j)));
                     barSprites = wifi;
+                }
+                else if (skins.Length >= 3)
+                {
+                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
 
-                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    Sprite[] wifi = new Sprite[11];
+                    for (var j = 0; j < 11; j++)
+                        wifi[j] = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[2].Insert(skins[1].Length - 4, "_" + j)));
+                    barSprites = wifi;
                 }
             }
 
