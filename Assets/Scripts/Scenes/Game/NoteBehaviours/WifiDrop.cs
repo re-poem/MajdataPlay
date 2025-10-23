@@ -173,6 +173,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             Transform.rotation = Quaternion.Euler(0f, 0f, -45f * (StartPos - 1));
 
             LoadSkin();
+            var wavs = KustomWav!.Split(';');
+            if (wavs.Length == 1)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[0];
+            }
+            else if (wavs.Length == 2)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[1];
+            }
+            else if (wavs.Length >= 3)
+            {
+                _kustomWavs[0] = wavs[1];
+                _kustomWavs[1] = wavs[2];
+            }
             _slideOK!.transform.SetParent(transform.parent);
             var stars = _stars.Span;
             var starTransforms = _starTransforms.Span;
@@ -611,6 +627,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 Diff = _judgeDiff,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 IsBreak = IsBreak
             };
 

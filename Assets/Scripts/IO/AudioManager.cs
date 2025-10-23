@@ -319,6 +319,46 @@ namespace MajdataPlay.IO
                 };
                 SFXSamples.Add((sample));
             }
+
+            var kustomFileNameList = Directory.EnumerateFiles(rootPath + "Kustom/", "*", SearchOption.AllDirectories);
+
+            foreach (var fullFilePath in kustomFileNameList)
+            {
+                if (fullFilePath.EndsWith(".meta")) continue;
+                AudioSampleWrap sample;
+                switch (MajInstances.Settings.Audio.Backend)
+                {
+                    case SoundBackendOption.Unity:
+                        sample = UnityAudioSample.Create($"file://{fullFilePath}", gameObject);
+                        break;
+                    case SoundBackendOption.Asio:
+                    case SoundBackendOption.Wasapi:
+                        sample = BassAudioSample.Create(fullFilePath, BassGlobalMixer, false, false);
+                        break;
+                    case SoundBackendOption.BassSimple:
+                        sample = BassSimpleAudioSample.Create(fullFilePath, false, false);
+                        break;
+                    default:
+                        throw new NotImplementedException("Backend not supported");
+                }
+
+                string filePath = fullFilePath.Replace('\\', '/');
+                sample.Name = filePath[(filePath.IndexOf("Kustom/") + "Kustom/".Length)..];
+
+                //group the samples
+                sample.SampleType = fullFilePath switch
+                {
+                    var _ when rootPath == VoiceFilePath => SFXSampleType.Voice,
+                    var p when p.StartsWith("bgm") => SFXSampleType.BGM,
+                    var p when p.StartsWith("answer") => SFXSampleType.Answer,
+                    var p when p.StartsWith("break") => SFXSampleType.Break,
+                    var p when p.StartsWith("slide") => SFXSampleType.Slide,
+                    var p when p.StartsWith("tap") => SFXSampleType.Tap,
+                    var p when p.StartsWith("touch") => SFXSampleType.Touch,
+                    _ => sample.SampleType
+                };
+                SFXSamples.Add(sample);
+            }
         }
         void OnAnyAreaDown(object sender, InputEventArgs e)
         {

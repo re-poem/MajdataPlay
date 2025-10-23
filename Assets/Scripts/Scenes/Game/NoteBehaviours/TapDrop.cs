@@ -13,6 +13,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
+using WebSocketSharp;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 {
@@ -158,6 +159,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             };
             PlayJudgeSFX(result);
@@ -175,11 +177,16 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             });
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
+            if (IsKustom && !KustomWav.IsNullOrEmpty())
+            {
+                _audioEffMana.currentkWav.Add(KustomWav!);
+            }
             _audioEffMana.PlayTapSound(judgeResult);
         }
         [OnPreUpdate]

@@ -171,6 +171,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             LoadSlidePath();
             LoadSkin();
+            var wavs = KustomWav!.Split(';');
+            if (wavs.Length == 1)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[0];
+            }
+            else if (wavs.Length == 2)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[1];
+            }
+            else if (wavs.Length >= 3)
+            {
+                _kustomWavs[0] = wavs[1];
+                _kustomWavs[1] = wavs[2];
+            }
             _slideOK!.transform.SetParent(Transform.parent);
             // 计算Slide淡入时机
             // 在8.0速时应当提前300ms显示Slide
@@ -651,6 +667,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     Grade = _judgeResult,
                     Diff = _judgeDiff,
                     IsEX = IsEX,
+                    IsKustom = IsKustom,
                     IsBreak = IsBreak
                 };
                 // 只有组内最后一个Slide完成 才会显示判定条并增加总数

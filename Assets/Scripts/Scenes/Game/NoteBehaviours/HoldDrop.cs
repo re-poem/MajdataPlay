@@ -6,9 +6,10 @@ using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
 using MajdataPlay.Utils;
-using UnityEngine;
 using System.IO;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using WebSocketSharp;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -285,6 +286,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             };
             PlayJudgeSFX(new NoteJudgeResult()
@@ -292,6 +294,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = false,
                 IsEX = false,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             });
             _lastHoldState = -2;
@@ -317,11 +320,16 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             });
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
+            if (IsKustom && !KustomWav.IsNullOrEmpty())
+            {
+                _audioEffMana.currentkWav.Add(KustomWav!);
+            }
             _audioEffMana.PlayTapSound(judgeResult);
         }
         [OnPreUpdate]
@@ -499,6 +507,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         Grade = _judgeResult,
                         IsBreak = IsBreak,
                         IsEX = IsEX,
+                        IsKustom = IsKustom,
                         Diff = _judgeDiff
                     });
                 }
@@ -547,6 +556,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         Grade = _judgeResult,
                         IsBreak = IsBreak,
                         IsEX = IsEX,
+                        IsKustom = IsKustom,
                         Diff = _judgeDiff
                     });
                 }

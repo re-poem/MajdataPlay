@@ -1,20 +1,23 @@
 ﻿using Cysharp.Threading.Tasks;
+using MajdataPlay.Buffers;
 using MajdataPlay.Collections;
+using MajdataPlay.Editor;
 using MajdataPlay.Extensions;
 using MajdataPlay.IO;
+using MajdataPlay.Numerics;
+using MajdataPlay.Scenes.Game.Notes.Controllers;
+using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using System.Runtime.CompilerServices;
-using MajdataPlay.Editor;
-using MajdataPlay.Scenes.Game.Notes.Slide;
-using MajdataPlay.Scenes.Game.Notes.Controllers;
-using MajdataPlay.Numerics;
-using MajdataPlay.Buffers;
-using Unity.IL2CPP.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Unity.IL2CPP.CompilerServices;
+using UnityEngine;
+using WebSocketSharp;
+using static UnityEngine.InputManagerEntry;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -196,6 +199,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         // Flags
         protected bool _isCheckable = false;
         protected bool _isSoundPlayed = false;
+
+        protected string[] _kustomWavs = new string[2]; //start, judge
 
         GameObject?[] _rentedArrayForStars;
         Transform[] _rentedArrayForStarTransforms;
@@ -416,7 +421,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         {
             if (!_isSoundPlayed)
             {
-                _audioEffMana.PlaySlideSound(IsBreak);
+                if (IsKustom && !KustomWav.IsNullOrEmpty())
+                    _audioEffMana.currentkWav.Add(_kustomWavs[0]); //启动
+                _audioEffMana.PlaySlideSound(IsBreak, IsKustom);
                 _isSoundPlayed = true;
             }
         }
@@ -424,8 +431,10 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected sealed override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
+            if (IsKustom && !KustomWav.IsNullOrEmpty())
+                _audioEffMana.currentkWav.Add(_kustomWavs[1]);
             if (judgeResult.IsBreak && !judgeResult.IsMissOrTooFast)
-                _audioEffMana.PlayBreakSlideEndSound();
+                _audioEffMana.PlayBreakSlideEndSound(IsKustom);
         }
         protected virtual void TooLateJudge()
         {

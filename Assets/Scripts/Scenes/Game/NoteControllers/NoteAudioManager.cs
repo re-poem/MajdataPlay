@@ -13,12 +13,15 @@ using System.Threading.Tasks;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
 using UnityEngine.Profiling;
+using static UnityEditorInternal.VersionControl.ListControl;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Controllers
 {
     internal class NoteAudioManager : MonoBehaviour
     {
         public float FirstClockTiming { get; private set; }
+
+        public List<string> currentkWav = new(); // 从Drops添加，从play函数删除
 
         XxlbAnimationController _xxlbController;
         INoteController _noteController;
@@ -28,7 +31,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         Memory<AnswerSoundPoint> _answerTimingPoints = Memory<AnswerSoundPoint>.Empty;
         AnswerSoundPoint[] _rentedArrayForAnswerSoundPoints = Array.Empty<AnswerSoundPoint>();
 
-        readonly static bool[] _noteSFXPlaybackRequests = new bool[14];
+        readonly static bool[] _noteSFXPlaybackRequests = new bool[15];
         readonly static AudioSampleWrap[] _noteSFXs = new AudioSampleWrap[14];
         readonly AudioManager _audioManager = MajInstances.AudioManager;
         static readonly ReadOnlyMemory<string> SFX_NAMES = new string[14]
@@ -63,6 +66,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         const int FIREWORK = 11;
         const int ANSWER = 12;
         const int ANSWER_CLOCK = 13;
+        const int KUSTOM = 14;
 
         float _answerOffsetSec = 0;
 
@@ -225,6 +229,15 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                             _noteSFXs[ANSWER_CLOCK].PlayOneShot();
                         }
                         break;
+                    case KUSTOM:
+                        if (isRequested)
+                        {
+                            foreach (var kWav in currentkWav)
+                            {
+                                _audioManager.GetSFX(kWav).PlayOneShot();
+                            }
+                        }
+                        break;
                 }
             }
             Profiler.EndSample();
@@ -282,9 +295,14 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
             if (judgeResult.IsMissOrTooFast)
                 return;
 
+            if (judgeResult.IsKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
+
             var isBreak = judgeResult.IsBreak;
             var isEx = judgeResult.IsEX;
-
 
             if (isBreak)
             {
@@ -458,24 +476,39 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         [Il2CppSetOption(Option.NullChecks, false)]
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PlayTouchSound()
+        public void PlayTouchSound(bool isKustom)
         {
+            if (isKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
             _noteSFXPlaybackRequests[TOUCH] = true;
             //_audioManager.PlaySFX("touch.wav");
         }
         [Il2CppSetOption(Option.NullChecks, false)]
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PlayHanabiSound()
+        public void PlayHanabiSound(bool isKustom)
         {
+            if (isKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
             _noteSFXPlaybackRequests[FIREWORK] = true;
             //_audioManager.PlaySFX("touch_hanabi.wav");
         }
         [Il2CppSetOption(Option.NullChecks, false)]
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PlayTouchHoldSound()
+        public void PlayTouchHoldSound(bool isKustom)
         {
+            if (isKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
             _noteSFXPlaybackRequests[TOUCHHOLD] = true;
             //var riser = _audioManager.GetSFX("touch_Hold_riser.wav");
             //if(!riser.IsPlaying)
@@ -492,8 +525,13 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         [Il2CppSetOption(Option.NullChecks, false)]
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PlaySlideSound(bool isBreak)
+        public void PlaySlideSound(bool isBreak, bool isKustom)
         {
+            if (isKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
             if (isBreak)
             {
                 _noteSFXPlaybackRequests[BREAK_SLIDE] = true;
@@ -509,8 +547,13 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public void PlayBreakSlideEndSound()
+        public void PlayBreakSlideEndSound(bool isKustom)
         {
+            if (isKustom)
+            {
+                _noteSFXPlaybackRequests[KUSTOM] = true;
+                return;
+            }
             _noteSFXPlaybackRequests[BREAK_SLIDE_JUDGE] = true;
             _noteSFXPlaybackRequests[BREAK_SFX] = true;
             //_audioManager.PlaySFX("slide_break_slide.wav");

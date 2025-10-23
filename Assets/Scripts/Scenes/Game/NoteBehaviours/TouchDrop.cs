@@ -203,6 +203,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 Diff = _judgeDiff,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 IsBreak = IsBreak
             };
             // disable SpriteRenderer
@@ -565,6 +566,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             });
         }
@@ -572,12 +574,13 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         {
             if (judgeResult.IsMissOrTooFast)
                 return;
+            _audioEffMana.currentkWav.Add(KustomWav!);
             if (judgeResult.IsBreak)
                 _audioEffMana.PlayTapSound(judgeResult);
             else
-                _audioEffMana.PlayTouchSound();
-            if (_isFirework)
-                _audioEffMana.PlayHanabiSound();
+                _audioEffMana.PlayTouchSound(IsKustom);
+            if (_isFirework && !IsKustom)
+                _audioEffMana.PlayHanabiSound(IsKustom);
         }
         RendererStatus _rendererState = RendererStatus.Off;
     }

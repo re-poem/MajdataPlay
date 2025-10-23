@@ -52,6 +52,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         }
         public char areaPosition;
         public bool isFirework;
+        public string[] _kustomWavs = new string[2];
 
         Sprite board_On;
         Sprite board_Off;
@@ -117,6 +118,18 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             _pointObject.SetActive(true);
             _borderObject.SetActive(true);
 
+            var wavs = KustomWav!.Split(';');
+            if (wavs.Length == 1)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[0];
+            }
+            else if (wavs.Length >= 2)
+            {
+                _kustomWavs[0] = wavs[0];
+                _kustomWavs[1] = wavs[1];
+            }
+
             Transform.position = new Vector3(0, 0, 0);
             SetFansColor(new Color(1f, 1f, 1f, 0f));
             SetFansPosition(0.4f);
@@ -165,6 +178,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                             Grade = _judgeResult,
                             IsBreak = IsBreak,
                             IsEX = IsEX,
+                            IsKustom = IsKustom,
                             Diff = _judgeDiff
                         });
                         _effectManager.PlayHoldEffect(_sensorPos, _judgeResult);
@@ -295,6 +309,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff,
             };
             //_pointObject.SetActive(false);
@@ -316,6 +331,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = false,
                 IsEX = false,
+                IsKustom = IsKustom,
                 Diff = _judgeDiff
             });
             _lastHoldState = -2;
@@ -591,7 +607,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             if (_lastHoldState is -1 or 1)
             {
-                _audioEffMana.PlayTouchHoldSound();
+                _audioEffMana.PlayTouchHoldSound(IsKustom);
             }
 
             if (!_bodyCheckRange.InRange(ThisFrameSec) || !NoteController.IsStart)
@@ -739,15 +755,17 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         }
         protected override void PlaySFX()
         {
-            _audioEffMana.PlayTouchHoldSound();
+            _audioEffMana.currentkWav.Add(_kustomWavs[0]);
+            _audioEffMana.PlayTouchHoldSound(IsKustom);
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
             if (judgeResult.IsMissOrTooFast)
                 return;
+            _audioEffMana.currentkWav.Add(_kustomWavs[1]);
             _audioEffMana.PlayTapSound(judgeResult);
-            if (isFirework)
-                _audioEffMana.PlayHanabiSound();
+            if (isFirework && !IsKustom)
+                _audioEffMana.PlayHanabiSound(IsKustom);
         }
 
         RendererStatus _rendererState = RendererStatus.Off;
