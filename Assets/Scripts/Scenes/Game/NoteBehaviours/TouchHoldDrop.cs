@@ -118,18 +118,6 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             _pointObject.SetActive(true);
             _borderObject.SetActive(true);
 
-            var wavs = KustomWav!.Split(';');
-            if (wavs.Length == 1)
-            {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[0];
-            }
-            else if (wavs.Length >= 2)
-            {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[1];
-            }
-
             Transform.position = new Vector3(0, 0, 0);
             SetFansColor(new Color(1f, 1f, 1f, 0f));
             SetFansPosition(0.4f);
@@ -178,7 +166,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                             Grade = _judgeResult,
                             IsBreak = IsBreak,
                             IsEX = IsEX,
-                            IsKustom = IsKustom,
+                            IsKustom = IsKustom && KustomWav != null,
                             Diff = _judgeDiff
                         });
                         _effectManager.PlayHoldEffect(_sensorPos, _judgeResult);
@@ -309,7 +297,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff,
             };
             //_pointObject.SetActive(false);
@@ -331,7 +319,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = false,
                 IsEX = false,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             });
             _lastHoldState = -2;
@@ -377,19 +365,30 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 board_Off = skin.Off;
             }
 
-            if (IsKustom)
-            {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                _fanRenderers[0].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_0")));
-                _fanRenderers[1].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_1")));
-                _fanRenderers[2].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_2")));
-                _fanRenderers[3].sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_3")));
-                _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_point")));
-                var border = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_border")));
-                _borderRenderer.sprite = border;
-                board_On = border;
-                board_Off = border;
-            }
+            if (IsKustom) LoadKustom();
+        }
+
+        void LoadKustom()
+        {
+            if (KustomSkin == null) return;
+            var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+            var insertIndex = Math.Max(KustomSkin!.Length - 4, 0);
+            _fanRenderers[0].sprite = SpriteLoader.Load(Path.Combine(path, KustomSkin!.Insert(insertIndex, "_0")));
+            _fanRenderers[1].sprite = SpriteLoader.Load(Path.Combine(path, KustomSkin!.Insert(insertIndex, "_1")));
+            _fanRenderers[2].sprite = SpriteLoader.Load(Path.Combine(path, KustomSkin!.Insert(insertIndex, "_2")));
+            _fanRenderers[3].sprite = SpriteLoader.Load(Path.Combine(path, KustomSkin!.Insert(insertIndex, "_3")));
+            _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(path, KustomSkin!.Insert(insertIndex, "_point")));
+            var border = SpriteLoader.Load(Path.Combine(path, KustomSkin));
+            _borderRenderer.sprite = border;
+            board_On = border;
+            board_Off = border;
+
+            var onSkin = Path.Combine(path, KustomSkin.Insert(insertIndex, "_on"));
+            var offSkin = Path.Combine(path, KustomSkin.Insert(insertIndex, "_off"));
+            if (File.Exists(onSkin))
+                board_On = SpriteLoader.Load(onSkin);
+            if (File.Exists(offSkin))
+                board_Off = SpriteLoader.Load(offSkin);
         }
         protected override void Judge(float currentSec)
         {
@@ -607,7 +606,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             if (_lastHoldState is -1 or 1)
             {
-                _audioEffMana.PlayTouchHoldSound(IsKustom);
+                _audioEffMana.PlayTouchHoldSound();
             }
 
             if (!_bodyCheckRange.InRange(ThisFrameSec) || !NoteController.IsStart)
@@ -755,17 +754,21 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         }
         protected override void PlaySFX()
         {
-            _audioEffMana.currentkWav.Add(_kustomWavs[0]);
-            _audioEffMana.PlayTouchHoldSound(IsKustom);
+            _audioEffMana.PlayTouchHoldSound();
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
             if (judgeResult.IsMissOrTooFast)
                 return;
-            _audioEffMana.currentkWav.Add(_kustomWavs[1]);
+            if (IsKustom && KustomWav != null)
+            {
+                var wavs = KustomWav!.Split(';');
+                foreach (var wav in wavs)
+                    _audioEffMana.currentkWav.Add(wav);
+            }
             _audioEffMana.PlayTapSound(judgeResult);
             if (isFirework && !IsKustom)
-                _audioEffMana.PlayHanabiSound(IsKustom);
+                _audioEffMana.PlayHanabiSound(IsKustom && KustomWav != null);
         }
 
         RendererStatus _rendererState = RendererStatus.Off;

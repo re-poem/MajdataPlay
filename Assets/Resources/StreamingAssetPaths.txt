@@ -26,6 +26,8 @@ SFX\tap_perfect.wav
 SFX\touch.wav
 SFX\touch_hanabi.wav
 SFX\touch_Hold_riser.wav
+SFX\Kustom\abc.wav
+SFX\Kustom\a\abc.mp3
 Voice\advanced.wav
 Voice\all_perfect.wav
 Voice\all_perfect_plus.wav

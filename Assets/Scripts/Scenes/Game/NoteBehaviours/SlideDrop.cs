@@ -7,22 +7,13 @@ using MajdataPlay.Scenes.Game.Notes.Slide;
 using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
-using MajdataPlay.Timer;
 using MajdataPlay.Utils;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using Unity.VisualScripting;
 using UnityEngine;
-using MajdataPlay.Editor;
-using MajdataPlay.Scenes.Game.Notes.Slide;
-using MajdataPlay.Scenes.Game.Notes.Slide.Utils;
-using MajdataPlay.IO;
-using MajdataPlay.Numerics;
-using MajdataPlay.Buffers;
-using MajdataPlay.Settings;
 using System.Runtime.CompilerServices;
 using Unity.IL2CPP.CompilerServices;
+using WebSocketSharp;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -171,22 +162,27 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             LoadSlidePath();
             LoadSkin();
-            var wavs = KustomWav!.Split(';');
-            if (wavs.Length == 1)
+            
+            if (KustomWav != null)
             {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[0];
+                var wavs = KustomWav!.Split(';');
+                if (wavs.Length == 1)
+                {
+                    _kustomWavs[0] = wavs[0];
+                    _kustomWavs[1] = wavs[0];
+                }
+                else if (wavs.Length == 2)
+                {
+                    _kustomWavs[0] = wavs[0];
+                    _kustomWavs[1] = wavs[1];
+                }
+                else if (wavs.Length >= 3)
+                {
+                    _kustomWavs[0] = wavs[1];
+                    _kustomWavs[1] = wavs[2];
+                }
             }
-            else if (wavs.Length == 2)
-            {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[1];
-            }
-            else if (wavs.Length >= 3)
-            {
-                _kustomWavs[0] = wavs[1];
-                _kustomWavs[1] = wavs[2];
-            }
+
             _slideOK!.transform.SetParent(Transform.parent);
             // 计算Slide淡入时机
             // 在8.0速时应当提前300ms显示Slide
@@ -667,7 +663,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     Grade = _judgeResult,
                     Diff = _judgeDiff,
                     IsEX = IsEX,
-                    IsKustom = IsKustom,
+                    IsKustom = IsKustom && KustomWav != null,
                     IsBreak = IsBreak
                 };
                 // 只有组内最后一个Slide完成 才会显示判定条并增加总数
@@ -889,25 +885,27 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 starSprite = skin.Star.Break;
                 breakMaterial = BreakMaterial;
             }
-            if (IsKustom)
+
+            if (IsKustom && KustomSkin != null) //LoadKustom();
             {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                var skins = KustomSkin!.Split(';');
+                var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                var skins = KustomSkin!.Split(':')[0].Split(';');
+
                 if (skins.Length == 1)
                 {
-                    var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    var sprite = SpriteLoader.Load(Path.Combine(path, skins[0]));
                     starSprite = sprite;
                     barSprite = sprite;
                 }
                 else if (skins.Length == 2)
                 {
-                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
-                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
+                    starSprite = SpriteLoader.Load(Path.Combine(path, skins[0]));
+                    barSprite = SpriteLoader.Load(Path.Combine(path, skins[1]));
                 }
                 else if (skins.Length >= 3)
                 {
-                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
-                    barSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[2]));
+                    starSprite = SpriteLoader.Load(Path.Combine(path, skins[1]));
+                    barSprite = SpriteLoader.Load(Path.Combine(path, skins[2]));
                 }
             }
 

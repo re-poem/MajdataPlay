@@ -6,6 +6,7 @@ using MajdataPlay.Scenes.Game.Notes.Controllers;
 using MajdataPlay.Scenes.Game.Utils;
 using MajdataPlay.Settings;
 using MajdataPlay.Utils;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -286,7 +287,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             };
             PlayJudgeSFX(new NoteJudgeResult()
@@ -294,7 +295,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = false,
                 IsEX = false,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             });
             _lastHoldState = -2;
@@ -320,15 +321,17 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             });
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
-            if (IsKustom && !KustomWav.IsNullOrEmpty())
+            if (IsKustom && KustomWav != null)
             {
-                _audioEffMana.currentkWav.Add(KustomWav!);
+                var wavs = KustomWav!.Split(';');
+                foreach (var wav in wavs)
+                    _audioEffMana.currentkWav.Add(wav);
             }
             _audioEffMana.PlayTapSound(judgeResult);
         }
@@ -507,7 +510,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         Grade = _judgeResult,
                         IsBreak = IsBreak,
                         IsEX = IsEX,
-                        IsKustom = IsKustom,
+                        IsKustom = IsKustom && KustomWav != null,
                         Diff = _judgeDiff
                     });
                 }
@@ -556,7 +559,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         Grade = _judgeResult,
                         IsBreak = IsBreak,
                         IsEX = IsEX,
-                        IsKustom = IsKustom,
+                        IsKustom = IsKustom && KustomWav != null,
                         Diff = _judgeDiff
                     });
                 }
@@ -744,24 +747,45 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _exRenderer.color = skin.ExEffects[2];
             }
 
-            if (IsKustom)
-            {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                _holdSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
-
-                _holdOnSprite = _holdSprite;
-                _holdOffSprite = _holdSprite;
-                var onSkin = Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_on"));
-                var offSkin = Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_off"));
-                if (File.Exists(onSkin))
-                    _holdOnSprite = SpriteLoader.Load(onSkin);
-                if (File.Exists(offSkin))
-                    _holdOffSprite = SpriteLoader.Load(offSkin);
-            }
+            if (IsKustom) LoadKustom();
 
             RendererState = RendererStatus.Off;
             //_endRenderer.enabled = false;
             _thisRenderer.sprite = _holdSprite;
+        }
+
+        void LoadKustom()
+        {
+            if (KustomSkin == null) return;
+            var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+            var kSkin = KustomSkin!.Split(':');
+
+            _holdSprite = SpriteLoader.Load(Path.Combine(path, kSkin[0]));
+            _holdOnSprite = _holdSprite;
+            _holdOffSprite = _holdSprite;
+
+            var insertIndex = Math.Max(kSkin[0].Length - 4, 0);
+
+            var onSkin = Path.Combine(path, kSkin[0].Insert(insertIndex, "_on"));
+            var offSkin = Path.Combine(path, kSkin[0].Insert(insertIndex, "_off"));
+            if (File.Exists(onSkin))
+                _holdOnSprite = SpriteLoader.Load(onSkin);
+            if (File.Exists(offSkin))
+                _holdOffSprite = SpriteLoader.Load(offSkin);
+
+            _exRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kSkin[0].Insert(insertIndex, "_ex")));
+
+            if (kSkin.Length >= 2)
+            {
+                var kGuide = kSkin[1].Split(';');
+                if (kGuide.Length == 1) 
+                    _tapLineRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kGuide[0]));
+                else if (kGuide.Length >= 2)
+                {
+                    _tapLineRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kGuide[0]));
+                    _endRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kGuide[1]));
+                }
+            }
         }
 
         RendererStatus _rendererState = RendererStatus.Off;

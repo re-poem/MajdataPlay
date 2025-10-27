@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using WebSocketSharp;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 {
@@ -203,7 +204,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 Diff = _judgeDiff,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 IsBreak = IsBreak
             };
             // disable SpriteRenderer
@@ -243,15 +244,25 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _pointRenderer.sprite = skin.Point_Normal;
             }
 
-            if (IsKustom)
-            {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                SetFansSprite(SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin)));
-                _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin!.Insert(KustomSkin.Length - 4, "_point")));
-            }
+            if (IsKustom) LoadKustom();
 
             _justBorderRenderer.sprite = skin.JustBorder;
         }
+
+        void LoadKustom()
+        {
+            if (KustomSkin == null) return;
+            var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+            var kSkin = KustomSkin!.Split(':');
+            SetFansSprite(SpriteLoader.Load(Path.Combine(path, kSkin[0])));
+            _pointRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kSkin[0].Insert(Math.Max(kSkin[0].Length - 4, 0), "_point")));
+
+            if (kSkin.Length >= 2)
+            {
+                _justBorderRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kSkin[1]));
+            }
+        }
+
         void TooLateCheck()
         {
             // Too late check
@@ -566,7 +577,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             });
         }
@@ -574,13 +585,20 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         {
             if (judgeResult.IsMissOrTooFast)
                 return;
-            _audioEffMana.currentkWav.Add(KustomWav!);
+
+            if (IsKustom && KustomWav != null)
+            {
+                var wavs = KustomWav!.Split(';');
+                foreach (var wav in wavs)
+                    _audioEffMana.currentkWav.Add(wav);
+            }
+            
             if (judgeResult.IsBreak)
                 _audioEffMana.PlayTapSound(judgeResult);
             else
-                _audioEffMana.PlayTouchSound(IsKustom);
+                _audioEffMana.PlayTouchSound(IsKustom && KustomWav != null);
             if (_isFirework && !IsKustom)
-                _audioEffMana.PlayHanabiSound(IsKustom);
+                _audioEffMana.PlayHanabiSound(IsKustom && KustomWav != null);
         }
         RendererStatus _rendererState = RendererStatus.Off;
     }

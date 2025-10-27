@@ -159,7 +159,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             };
             PlayJudgeSFX(result);
@@ -177,15 +177,17 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 IsBreak = IsBreak,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 Diff = _judgeDiff
             });
         }
         protected override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
-            if (IsKustom && !KustomWav.IsNullOrEmpty())
+            if (IsKustom && KustomWav != null)
             {
-                _audioEffMana.currentkWav.Add(KustomWav!);
+                var wavs = KustomWav!.Split(';');
+                foreach (var wav in wavs)
+                    _audioEffMana.currentkWav.Add(wav);
             }
             _audioEffMana.PlayTapSound(judgeResult);
         }
@@ -384,6 +386,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 LoadStarSkin();
             else
                 LoadTapSkin();
+
+            if (IsKustom) LoadKustom();
         }
         public override void SetActive(bool state)
         {
@@ -441,12 +445,6 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 _tapLineRenderer.sprite = skin.GuideLines[2];
                 _exRenderer.color = skin.ExEffects[2];
             }
-
-            if (IsKustom)
-            {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                _thisRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
-            }
         }
         void LoadStarSkin()
         {
@@ -496,11 +494,21 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                     _exRenderer.color = skin.ExEffects[2];
                 }
             }
+        }
 
-            if (IsKustom)
+        void LoadKustom()
+        {
+            if (KustomSkin == null) return;
+            var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+            var kSkin = KustomSkin!.Split(':');
+
+            var tapSkin = kSkin[0].Split(';')[0]; //适配star
+
+            _thisRenderer.sprite = SpriteLoader.Load(Path.Combine(path, tapSkin));
+            _exRenderer.sprite = SpriteLoader.Load(Path.Combine(path, tapSkin.Insert(Math.Max(tapSkin.Length - 4, 0), "_ex")));
+            if (kSkin.Length >= 2)
             {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                _thisRenderer.sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, KustomSkin));
+                _tapLineRenderer.sprite = SpriteLoader.Load(Path.Combine(path, kSkin[1]));
             }
         }
         RendererStatus _rendererState = RendererStatus.Off;

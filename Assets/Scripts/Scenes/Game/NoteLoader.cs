@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace MajdataPlay.Scenes.Game
@@ -655,8 +654,8 @@ namespace MajdataPlay.Scenes.Game
                     IsKustom = note.IsKustom,
                     IsSlient = note.IsSlient,
                     IsUnplayable = note.IsUnplayable,
-                    KustomSkin = note.KustomSkin.Split(';')[0],
-                    KustomWav = note.KustomWav.Split(';')[0],
+                    KustomSkin = note.KustomSkin,
+                    KustomWav = note.KustomWav,
                     UsingSV = note.UsingSV,
                     IsStar = true,
                     IsDouble = isDouble,

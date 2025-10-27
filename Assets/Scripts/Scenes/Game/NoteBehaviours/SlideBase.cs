@@ -17,7 +17,6 @@ using System.Runtime.CompilerServices;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
 using WebSocketSharp;
-using static UnityEngine.InputManagerEntry;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -421,9 +420,9 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         {
             if (!_isSoundPlayed)
             {
-                if (IsKustom && !KustomWav.IsNullOrEmpty())
+                if (IsKustom && !_kustomWavs[0].IsNullOrEmpty())
                     _audioEffMana.currentkWav.Add(_kustomWavs[0]); //启动
-                _audioEffMana.PlaySlideSound(IsBreak, IsKustom);
+                _audioEffMana.PlaySlideSound(IsBreak, IsKustom && KustomWav != null);
                 _isSoundPlayed = true;
             }
         }
@@ -431,10 +430,10 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected sealed override void PlayJudgeSFX(in NoteJudgeResult judgeResult)
         {
-            if (IsKustom && !KustomWav.IsNullOrEmpty())
+            if (IsKustom && !_kustomWavs[1].IsNullOrEmpty())
                 _audioEffMana.currentkWav.Add(_kustomWavs[1]);
-            if (judgeResult.IsBreak && !judgeResult.IsMissOrTooFast)
-                _audioEffMana.PlayBreakSlideEndSound(IsKustom);
+            if ((judgeResult.IsBreak || judgeResult.IsKustom) && !judgeResult.IsMissOrTooFast)
+                _audioEffMana.PlayBreakSlideEndSound(IsKustom && KustomWav != null);
         }
         protected virtual void TooLateJudge()
         {

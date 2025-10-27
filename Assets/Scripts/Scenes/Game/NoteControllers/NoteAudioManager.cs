@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
 using UnityEngine.Profiling;
-using static UnityEditorInternal.VersionControl.ListControl;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Controllers
 {
@@ -21,7 +20,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
     {
         public float FirstClockTiming { get; private set; }
 
-        public List<string> currentkWav = new(); // 从Drops添加，从play函数删除
+        public List<string> currentkWav = new();
 
         XxlbAnimationController _xxlbController;
         INoteController _noteController;
@@ -502,13 +501,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         [Il2CppSetOption(Option.NullChecks, false)]
         [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PlayTouchHoldSound(bool isKustom)
+        public void PlayTouchHoldSound()
         {
-            if (isKustom)
-            {
-                _noteSFXPlaybackRequests[KUSTOM] = true;
-                return;
-            }
             _noteSFXPlaybackRequests[TOUCHHOLD] = true;
             //var riser = _audioManager.GetSFX("touch_Hold_riser.wav");
             //if(!riser.IsPlaying)

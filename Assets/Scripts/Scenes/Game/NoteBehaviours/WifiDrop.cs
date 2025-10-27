@@ -14,6 +14,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
+using WebSocketSharp;
 
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -173,22 +174,27 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             Transform.rotation = Quaternion.Euler(0f, 0f, -45f * (StartPos - 1));
 
             LoadSkin();
-            var wavs = KustomWav!.Split(';');
-            if (wavs.Length == 1)
+
+            if (KustomWav != null)
             {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[0];
+                var wavs = KustomWav!.Split(';');
+                if (wavs.Length == 1)
+                {
+                    _kustomWavs[0] = wavs[0];
+                    _kustomWavs[1] = wavs[0];
+                }
+                else if (wavs.Length == 2)
+                {
+                    _kustomWavs[0] = wavs[0];
+                    _kustomWavs[1] = wavs[1];
+                }
+                else if (wavs.Length >= 3)
+                {
+                    _kustomWavs[0] = wavs[1];
+                    _kustomWavs[1] = wavs[2];
+                }
             }
-            else if (wavs.Length == 2)
-            {
-                _kustomWavs[0] = wavs[0];
-                _kustomWavs[1] = wavs[1];
-            }
-            else if (wavs.Length >= 3)
-            {
-                _kustomWavs[0] = wavs[1];
-                _kustomWavs[1] = wavs[2];
-            }
+
             _slideOK!.transform.SetParent(transform.parent);
             var stars = _stars.Span;
             var starTransforms = _starTransforms.Span;
@@ -627,7 +633,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 Grade = _judgeResult,
                 Diff = _judgeDiff,
                 IsEX = IsEX,
-                IsKustom = IsKustom,
+                IsKustom = IsKustom && KustomWav != null,
                 IsBreak = IsBreak
             };
 
@@ -658,14 +664,14 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 starSprite = skin.Star.Break;
                 breakMaterial = BreakMaterial;
             }
-            if (IsKustom)
+            if (IsKustom && KustomSkin != null) //LoadKustom();
             {
-                var kustomSkinPath = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
-                var skins = KustomSkin!.Split(';');
+                var path = Path.Combine(MajEnv.SkinPath, MajInstances.Settings.Display.Skin);
+                var skins = KustomSkin!.Split(':')[0].Split(';');
 
                 if (skins.Length == 1)
                 {
-                    var sprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    var sprite = SpriteLoader.Load(Path.Combine(path, skins[0]));
 
                     starSprite = sprite;
 
@@ -676,20 +682,20 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 }
                 else if (skins.Length == 2)
                 {
-                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[0]));
+                    starSprite = SpriteLoader.Load(Path.Combine(path, skins[0]));
 
                     Sprite[] wifi = new Sprite[11];
                     for (var j = 0; j < 11; j++)
-                        wifi[j] = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1].Insert(skins[1].Length - 4, "_" + j)));
+                        wifi[j] = SpriteLoader.Load(Path.Combine(path, skins[1].Insert(Math.Max(skins[1].Length - 4, 0), "_" + j)));
                     barSprites = wifi;
                 }
                 else if (skins.Length >= 3)
                 {
-                    starSprite = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[1]));
+                    starSprite = SpriteLoader.Load(Path.Combine(path, skins[1]));
 
                     Sprite[] wifi = new Sprite[11];
                     for (var j = 0; j < 11; j++)
-                        wifi[j] = SpriteLoader.Load(Path.Combine(kustomSkinPath, skins[2].Insert(skins[1].Length - 4, "_" + j)));
+                        wifi[j] = SpriteLoader.Load(Path.Combine(path, skins[2].Insert(Math.Max(skins[1].Length - 4, 0), "_" + j)));
                     barSprites = wifi;
                 }
             }
