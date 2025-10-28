@@ -126,8 +126,18 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             switch (AutoplayMode)
             {
                 case AutoplayModeOption.Enable:
-                    if (_isJudged || !IsAutoplay)
+                    if (!IsAutoplay)
+                    {
                         return;
+                    }
+                    else if(_isJudged)
+                    {
+                        if (GetRemainingTime() == 0)
+                        {
+                            End();
+                        }
+                        return;
+                    }
                     if (GetTimeSpanToJudgeTiming() >= -0.016667f)
                     {
                         var autoplayGrade = AutoplayGrade;
@@ -147,7 +157,6 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                         _effectManager.PlayHoldEffect(StartPos, _judgeResult);
                         _effectManager.ResetEffect(StartPos);
                         _lastHoldState = -1;
-                        End();
                     }
                     break;
                 case AutoplayModeOption.DJAuto_TouchPanel_First:
@@ -237,7 +246,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             {
                 _bodyCheckRange = CLASSIC_HOLD_BODY_CHECK_RANGE;
             }
-            else if (Length < HOLD_HEAD_IGNORE_LENGTH_SEC + HOLD_TAIL_IGNORE_LENGTH_SEC)
+            else if (Length <= HOLD_HEAD_IGNORE_LENGTH_SEC + HOLD_TAIL_IGNORE_LENGTH_SEC)
             {
                 _bodyCheckRange = DEFAULT_HOLD_BODY_CHECK_RANGE;
             }

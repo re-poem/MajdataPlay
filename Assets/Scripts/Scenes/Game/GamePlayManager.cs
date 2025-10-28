@@ -1074,6 +1074,12 @@ namespace MajdataPlay.Scenes.Game
                         var realTimeDifferenceb = (float)_bgManager.CurrentSec - (elapsedSeconds - _audioStartTime) * playbackSpeed;
 
                         _thisFrameSec = timeOffset;
+#if UNITY_ANDROID
+                        if(realTimeDifference < 0 && !_objectCounter.AllFinished)
+                        {
+                            _thisFrameSec += realTimeDifference;
+                        }
+#endif
                         _fakeThisFrameSec = ((INoteTimeProvider)this).GetPositionAtTime(_thisFrameSec);
                         var sb = ZString.CreateStringBuilder(true);
                         try

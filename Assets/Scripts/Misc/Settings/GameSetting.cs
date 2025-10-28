@@ -145,12 +145,16 @@ namespace MajdataPlay.Settings
         public bool ForceMono { get; set; } = false;
         [Preserve]
         public SFXVolume Volume { get; set; } = new();
+#if !UNITY_ANDROID
         [Preserve]
         public WasapiOptions Wasapi { get; set; } = new();
         [Preserve]
         public AsioOptions Asio { get; set; } = new();
         [Preserve]
         public ChannelOptions Channel { get; set; } = new();
+#else
+        public AndroidAudioOptions Android { get; set; } = new();
+#endif
         [Preserve]
         public SoundBackendOption Backend { get; set; } = SoundBackendOption.Wasapi;
     }
@@ -230,13 +234,6 @@ namespace MajdataPlay.Settings
                     Url = "https://majdata.net/api3/api" ,
                     Username = "YourUsername",
                     Password = "YourPassword"
-                }
-            },
-            {
-                new ApiEndpoint()
-                {
-                    Name = "Contest",
-                    Url = "https://majdata.net/api1/api"
                 }
             }
         };
@@ -324,6 +321,8 @@ namespace MajdataPlay.Settings
     {
         [Preserve]
         public bool Enable { get; set; } = true;
+        [Preserve]
+        public float Brightness { get; set; } = 1.0f;
         [Preserve]
         public int RefreshRateMs { get; set; } = 100;
         [Preserve]
@@ -419,5 +418,13 @@ namespace MajdataPlay.Settings
         public bool RawMode { get; set; } = true;
         public float BufferSize { get; set; } = 0.02f;
         public float Period { get; set; } = 0.005f;
+    }
+    public class AndroidAudioOptions
+    {
+        public bool EnableAAudio { get; set; } = true;
+        public int BufferLengthMs { get; set; } = 64;
+        public int UpdatePeriodMs { get; set; } = 16;
+        public int DeviceBufferLengthMs { get; set; } = 8;
+        public int DeviceUpdatePeriodMs { get; set; } = 4;
     }
 }
