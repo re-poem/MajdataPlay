@@ -4,6 +4,7 @@ using MajdataPlay.Net;
 using MajSimai;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,6 +27,7 @@ namespace MajdataPlay
 
         ValueTask PreloadAsync(INetProgress? progress = null, CancellationToken token = default);
         ValueTask<string> GetVideoPathAsync(INetProgress? progress = null, CancellationToken token = default);
+        ValueTask<CLVideo[]> GetCLVideoPathAsync(INetProgress? progress = null, CancellationToken token = default);
         ValueTask<Sprite> GetCoverAsync(bool isCompressed, INetProgress? progress = null, CancellationToken token = default);
         ValueTask<AudioSampleWrap> GetAudioTrackAsync(INetProgress? progress = null, CancellationToken token = default);
         ValueTask<AudioSampleWrap> GetPreviewAudioTrackAsync(INetProgress? progress = null, CancellationToken token = default);

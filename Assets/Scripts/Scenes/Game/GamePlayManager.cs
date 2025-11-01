@@ -607,10 +607,17 @@ namespace MajdataPlay.Scenes.Game
                     var cover = await _songDetail.GetCoverAsync(false);
                     await UniTask.SwitchToMainThread();
                     _bgManager.SetBackgroundPic(cover);
-                }        
+                }
             }
 
             _bgManager.SetBackgroundDim(1.0f);
+
+            var CLVideos = await _songDetail.GetCLVideoPathAsync();
+            if (CLVideos.Length > 0)
+            {
+                await UniTask.SwitchToMainThread();
+                await _bgManager.SetCLVideoAsync(CLVideos);
+            }
         }
         /// <summary>
         /// Parse and load notes into NotePool

@@ -306,6 +306,10 @@ namespace MajdataPlay
                 throw;
             }
         }
+        public ValueTask<CLVideo[]> GetCLVideoPathAsync(INetProgress? progress = null, CancellationToken token = default)
+        {
+            return new ValueTask<CLVideo[]>(new CLVideo[0]);
+        }
         public ValueTask<Sprite> GetCoverAsync(bool isCompressed, INetProgress? progress = null, CancellationToken token = default)
         {
             ThrowIfDisposed();

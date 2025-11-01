@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using MajdataPlay.Collections;
 using MajdataPlay.IO;
 using MajdataPlay.Net;
 using MajdataPlay.Utils;
@@ -44,6 +45,8 @@ namespace MajdataPlay
         readonly string _videoPath = string.Empty;
         readonly string _coverPath = string.Empty;
 
+        readonly CLVideo[] _CLVideos;
+
         static readonly Action _emptyCallback = () => { };
         bool _isPreloaded = false;
         bool _isDisposed = false;
@@ -64,7 +67,7 @@ namespace MajdataPlay
         {
             Dispose();
         }
-        public SongDetail(string chartFolder, SimaiMetadata metadata)
+        public SongDetail(string chartFolder, SimaiMetadata metadata, SortingLayer[] layers)
         {
             var files = new DirectoryInfo(chartFolder).GetFiles();
 
@@ -73,6 +76,33 @@ namespace MajdataPlay
             _videoPath = files.FirstOrDefault(o => o.Name is "bg.mp4" or "pv.mp4" or "mv.mp4")?.FullName ?? string.Empty;
             _coverPath = files.FirstOrDefault(o => o.Name is "bg.png" or "bg.jpg")?.FullName ?? string.Empty;
             _maidata = null;
+
+            _CLVideos = files
+                .Select(o =>
+                {
+                    var args = o.Name.Split('_');
+                    if (args.Length < 3) return null;
+
+                    // prefix
+                    if (args[0] is not ("bg" or "pv" or "mv")) return null;
+
+                    // SortingLayer
+                    var layer = layers.FirstOrDefault(l => l.name == args[1]).id;
+                    if (layer < 0) return null;
+
+                    // SortingOrder
+                    if (!int.TryParse(args[2].Split('.')[0], out int order)) return null; //.Split('.')[0] to remove file extension
+
+                    return new CLVideo()
+                    {
+                        FullName = o.FullName,
+                        LayerID = layer,
+                        Order = order
+                    };
+                })
+                .Where(v => v != null)
+                .ToArray()!;
+
 
             if (string.IsNullOrEmpty(_coverPath))
             {
@@ -88,7 +118,9 @@ namespace MajdataPlay
             var maidataPath = Path.Combine(chartFolder, "maidata.txt");
             var metadata = await SimaiParser.ParseMetadataAsync(File.OpenRead(maidataPath));
 
-            return new SongDetail(chartFolder, metadata);
+            await UniTask.SwitchToMainThread();
+            var layers = SortingLayer.layers;
+            return new SongDetail(chartFolder, metadata, layers);
         }
         public async ValueTask PreloadAsync(INetProgress? progress = null, CancellationToken token = default)
         {
@@ -109,6 +141,11 @@ namespace MajdataPlay
         {
             ThrowIfDisposed();
             return UniTask.FromResult(_videoPath);
+        }
+        public ValueTask<CLVideo[]> GetCLVideoPathAsync(INetProgress? progress = null, CancellationToken token = default)
+        {
+            ThrowIfDisposed();
+            return UniTask.FromResult(_CLVideos);
         }
         public async ValueTask<Sprite> GetCoverAsync(bool isCompressed, INetProgress? progress = null, CancellationToken token = default)
         {
