@@ -6542,7 +6542,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _CLVideosCanvas: {fileID: 2069146911}
-  _CLVideoPrefab: {fileID: 977106099708797818, guid: e33e2fe61f7aae846bd6b617e7ad1eb4, type: 3}
+  CLVideoPrefab: {fileID: 977106099708797818, guid: e33e2fe61f7aae846bd6b617e7ad1eb4, type: 3}
   _defaultScale: {x: 0, y: 0, z: 0}
   _videoRenderer: {fileID: 1679474004}
   _CLVideoRenderer: []

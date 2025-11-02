@@ -46,7 +46,7 @@ namespace MajdataPlay.Scenes.Game
         [SerializeField]
         GameObject _CLVideosCanvas;
         [SerializeField]
-        GameObject _CLVideoPrefab;
+        GameObject CLVideoPrefab;
 
         [SerializeField]
         Vector3 _defaultScale;
@@ -122,40 +122,57 @@ namespace MajdataPlay.Scenes.Game
         [Conditional("UNITY_STANDALONE_WIN")]
         internal void OnLateUpdate()
         {
+#if UNITY_STANDALONE_WIN
+            VLCCLVLateUpdate();
+#endif
             if (_usePictureAsBackground)
             {
                 return;
             }
 #if UNITY_STANDALONE_WIN
             VLCLateUpdate();
-            VLCCLVLateUpdate();
 #endif
         }
 
         public void PauseVideo()
         {
+#if UNITY_STANDALONE_WIN
+            foreach (var clv in _CLVideoPlayer)
+                clv.Pause();
+#endif
+
             if (_usePictureAsBackground)
             {
                 return;
             }
-
             _videoPlayer.Pause();
-            foreach (var clv in _CLVideoPlayer)
-                clv.Pause();
         }
 
         public void StopVideo()
         {
+#if UNITY_STANDALONE_WIN
+            foreach (var clv in _CLVideoPlayer)
+                clv.Stop();
+#endif
+
             if (_usePictureAsBackground)
             {
                 return;
             }
             _videoPlayer.Stop();
-            foreach (var clv in _CLVideoPlayer)
-                clv.Stop();
         }
         public void PlayVideo(float time,float speed)
         {
+#if UNITY_STANDALONE_WIN
+            foreach (var clv in _CLVideoPlayer)
+            {
+                clv.SetRate(speed);
+                clv.SeekTo(TimeSpan.FromSeconds(time));
+                clv.Play();
+            }
+#else
+#endif
+
             if (_usePictureAsBackground)
             {
                 return;
@@ -164,12 +181,6 @@ namespace MajdataPlay.Scenes.Game
             _videoPlayer.SetRate(speed);
             _videoPlayer.SeekTo(TimeSpan.FromSeconds(time));
             _videoPlayer.Play();
-            foreach (var clv in _CLVideoPlayer)
-            {
-                clv.SetRate(speed);
-                clv.SeekTo(TimeSpan.FromSeconds(time));
-                clv.Play();
-            }
 #else
             _videoPlayer.playbackSpeed = speed;
             _videoPlayer.time = time;
@@ -179,14 +190,17 @@ namespace MajdataPlay.Scenes.Game
 
         public void SetVideoSpeed(float speed)
         {
+#if UNITY_STANDALONE_WIN
+            foreach (var clv in _CLVideoPlayer)
+                clv.SetRate(speed);
+#else
+#endif
             if (_usePictureAsBackground)
             {
                 return;
             }
 #if UNITY_STANDALONE_WIN
             _videoPlayer.SetRate(speed);
-            foreach (var clv in _CLVideoPlayer)
-                clv.SetRate(speed);
 #else
             _videoPlayer.playbackSpeed = speed;
 #endif
@@ -209,6 +223,12 @@ namespace MajdataPlay.Scenes.Game
 
         public void DisableVideo()
         {
+#if UNITY_STANDALONE_WIN
+            foreach (var clv in _CLVideoPlayer)
+                clv.Media = null;
+#else
+#endif
+
             if (_usePictureAsBackground)
             {
                 return;
@@ -217,8 +237,6 @@ namespace MajdataPlay.Scenes.Game
             //Disable rawimage optional
 #if UNITY_STANDALONE_WIN
             _videoPlayer.Media = null;
-            foreach (var clv in _CLVideoPlayer)
-                clv.Media = null;
 #else
             _videoPlayer.url = null;
             _videoPlayer.Stop();
@@ -338,10 +356,9 @@ namespace MajdataPlay.Scenes.Game
                     _vlcclvTextures.Add(null);
                     _clvRenderTexture.Add(null);
 
-                    GameObject GOCLVideo = Instantiate(_CLVideoPrefab);
-                    GOCLVideo.transform.SetParent(_CLVideosCanvas.transform, false);
-                    GOCLVideo.transform.position = Vector3.zero;
-                    ((RectTransform)GOCLVideo.transform).sizeDelta = new Vector2(1080, 1080);
+                    GameObject GOCLVideo = Instantiate(CLVideoPrefab, _CLVideosCanvas.transform, false);
+                    //GOCLVideo.transform.position = Vector3.zero;
+                    //((RectTransform)GOCLVideo.transform).sizeDelta = new Vector2(1080, 1080);
                     var ri = GOCLVideo.GetComponent<RawImage>();
                     var cv = GOCLVideo.GetComponent<Canvas>();
                     cv.overrideSorting = true;
@@ -471,7 +488,7 @@ namespace MajdataPlay.Scenes.Game
                     //Make a renderTexture the same size as vlctex
                     clvRenderTexture = new RenderTexture(clvTexture.width, clvTexture.height, 0, RenderTextureFormat.ARGB32);
 
-                    clvRenderer.texture = clvRenderTexture;
+                    clvRenderer!.texture = clvRenderTexture;
                     clvRenderer.gameObject.transform.localScale = new Vector3(1f, scale, 1f);
                 }
 
