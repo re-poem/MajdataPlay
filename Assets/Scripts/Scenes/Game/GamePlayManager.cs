@@ -17,6 +17,7 @@ using MajSimai;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
@@ -419,7 +420,7 @@ namespace MajdataPlay.Scenes.Game
                 //var ss = string.Format(Localization.GetLocalizedText("Return to {0} in {1} seconds"), "List", "1");
                 MajInstances.SceneSwitcher.SetLoadingText($"{s}", Color.red);
                 await UniTask.Delay(1000);
-                BackToList().Forget();
+                ReturnTo().Forget();
             }
             catch (OBSRecorderException)
             {
@@ -428,7 +429,7 @@ namespace MajdataPlay.Scenes.Game
                 var s = Localization.GetLocalizedText("OBSError");
                 MajInstances.SceneSwitcher.SetLoadingText($"{s}", Color.red);
                 await UniTask.Delay(1000);
-                BackToList().Forget();
+                ReturnTo().Forget();
             }
             catch(InvalidSimaiMarkupException syntaxE)
             {
@@ -1036,11 +1037,31 @@ namespace MajdataPlay.Scenes.Game
 #endif
                 if (_p1SkipTime > p1timeout)
                 {
-                    BackToList().Forget();
+                    if(IsPracticeMode)
+                    {
+                        var info = new GameInfo(GameMode.Practice, _gameInfo.Charts, _gameInfo.Levels, 114514);
+                        info.TimeRange = _gameInfo.TimeRange;
+                        Majdata<GameInfo>.Instance = info;
+                        ReturnTo("Practice").Forget();
+                    }
+                    else
+                    {
+                        ReturnTo().Forget();
+                    }
                 }
                 else if (_2367PressTime >= 0.5f && _isTrackSkipAvailable)
                 {
-                    BackToList().Forget();
+                    if (IsPracticeMode)
+                    {
+                        var info = new GameInfo(GameMode.Practice, _gameInfo.Charts, _gameInfo.Levels, 114514);
+                        info.TimeRange = _gameInfo.TimeRange;
+                        Majdata<GameInfo>.Instance = info;
+                        ReturnTo("Practice").Forget();
+                    }
+                    else
+                    {
+                        ReturnTo().Forget();
+                    }
                 }
                 else if (_3456PressTime >= 0.5f && _isFastRetryAvailable)
                 {
@@ -1082,7 +1103,7 @@ namespace MajdataPlay.Scenes.Game
 
                         _thisFrameSec = timeOffset;
 #if UNITY_ANDROID
-                        if(realTimeDifference < 0 && !_objectCounter.AllFinished)
+                        if(realTimeDifference < 0 && !_objectCounter.AllFinished && _audioSample.IsPlaying)
                         {
                             _thisFrameSec += realTimeDifference;
                         }
@@ -1210,7 +1231,7 @@ namespace MajdataPlay.Scenes.Game
             EndGame(targetScene: "TotalResult").Forget();
         }
 
-        async UniTaskVoid BackToList()
+        async UniTaskVoid ReturnTo(string sceneName = "List")
         {
             State = GamePlayStatus.Ended;
             var sceneSwitcher = MajInstances.SceneSwitcher;
@@ -1227,7 +1248,7 @@ namespace MajdataPlay.Scenes.Game
                 await UniTask.Yield();
             }
             _sceneSwitcher.SetLoadingText(string.Empty);
-            sceneSwitcher.SwitchScene("List",false);
+            sceneSwitcher.SwitchScene(sceneName, false);
         }
         public async UniTaskVoid EndGame(int delayMiliseconds = 100,string targetScene = "Result")
         {

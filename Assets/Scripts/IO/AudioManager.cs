@@ -30,7 +30,6 @@ namespace MajdataPlay.IO
     public class AudioManager : MonoBehaviour
     {
         public static float[,] MixingMatrix { get; private set; } = new float[0, 0];
-        public static BassFlags Speaker { get; private set; } = BassFlags.SpeakerFront;
 
         string SFXFilePath;
         string VoiceFilePath;
@@ -109,6 +108,7 @@ namespace MajdataPlay.IO
                                                                  .ToArray();
 
                 var backend = MajInstances.Settings.Audio.Backend;
+                var isBass = backend is (SoundBackendOption.BassSimple or SoundBackendOption.Asio or SoundBackendOption.Wasapi);
 #if !UNITY_ANDROID
                 var wasapiOptions = MajInstances.Settings.Audio.Wasapi;
                 var asioOptions = MajInstances.Settings.Audio.Asio;
@@ -180,6 +180,7 @@ namespace MajdataPlay.IO
                                     BassAsio.ChannelSetFormat(false, i, AsioSampleFormat.Float);
                                 }
                             }
+                            MajDebug.LogInfo($"[BassAsio] Channel count: {asioInfo.Outputs}");
                             GenerateMixingMatrix(asioInfo.Outputs, mainChannel);
 
                             BassAsio.Start();
@@ -221,6 +222,7 @@ namespace MajdataPlay.IO
                             BassGlobalMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
                             Bass.ChannelSetAttribute(BassGlobalMixer, ChannelAttribute.Buffer, 0);
                             Bass.ChannelSetAttribute(BassGlobalMixer, (ChannelAttribute)86017, 8);
+                            MajDebug.LogInfo($"[BassWasapi] Channel count: {wasapiInfo.Channels}");
                             GenerateMixingMatrix(wasapiInfo.Channels, mainChannel);
                             BassWasapi.Start();
                         }
@@ -251,6 +253,7 @@ namespace MajdataPlay.IO
                             MajDebug.LogInfo($"[Bass] Min playback buffer length: {info.MinBufferLength}");
                             MajDebug.LogInfo($"[Bass] Current device buffer length: {Bass.GetConfig(Configuration.DeviceBufferLength)}");
                             MajDebug.LogInfo($"[Bass] Current device period: {Bass.GetConfig(Configuration.DevicePeriod)}");
+                            MajDebug.LogInfo($"[Bass] Channel count: {Bass.Info.SpeakerCount}");
 #if !UNITY_ANDROID
                             GenerateMixingMatrix(Bass.Info.SpeakerCount, mainChannel);
 #else
@@ -259,7 +262,18 @@ namespace MajdataPlay.IO
                         }
                         break;
                 }
-
+                if(isBass)
+                {
+                    unsafe
+                    {
+                        var ua = MajEnv.HTTP_USER_AGENT;
+                        fixed (char* ptr = &MemoryMarshal.GetReference(ua.AsSpan()))
+                        {
+                            var isSuccess = Bass.Configure(Configuration.NetAgent, (IntPtr)ptr);
+                            MajDebug.LogInfo($"[Bass] Set user-agent: {isSuccess}");
+                        }
+                    }
+                }
                 InitSFXSample(SFXFileNames, SFXFilePath);
                 InitSFXSample(VoiceFileNames, VoiceFilePath);
 
@@ -319,22 +333,7 @@ namespace MajdataPlay.IO
                     MajDebug.LogWarning(path + " dos not exists");
                     continue;
                 }
-                AudioSampleWrap sample;
-                switch(MajInstances.Settings.Audio.Backend)
-                {
-                    case SoundBackendOption.Unity:
-                        sample = UnityAudioSample.Create($"file://{path}", gameObject);
-                        break;
-                    case SoundBackendOption.Asio:
-                    case SoundBackendOption.Wasapi:
-                        sample = BassAudioSample.Create(path, BassGlobalMixer, false, false);
-                        break;
-                    case SoundBackendOption.BassSimple:
-                        sample = BassSimpleAudioSample.Create(path, false, false);
-                        break;
-                    default:
-                        throw new NotImplementedException("Backend not supported");
-                }
+                var sample = LoadMusic(path, false, false);
                 sample.Name = filePath;
 
                 //group the samples
@@ -446,23 +445,31 @@ namespace MajdataPlay.IO
             }
         }
 
-        public AudioSampleWrap LoadMusic(string path, bool speedChange = false)
+        public AudioSampleWrap LoadMusic(string path, bool normalize = true, bool speedChange = false)
         {
+            MajDebug.LogInfo($"Try creating channel from file: {path}");
             var backend = MajInstances.Settings.Audio.Backend;
             if (File.Exists(path))
             {
+                var sample = default(AudioSampleWrap);
                 switch (backend)
                 {
                     case SoundBackendOption.Unity:
-                        return UnityAudioSample.Create($"file://{path}", gameObject);
+                        sample = UnityAudioSample.Create($"file://{path}", gameObject);
+                        break;
                     case SoundBackendOption.Asio:
                     case SoundBackendOption.Wasapi:
-                        return BassAudioSample.Create(path, BassGlobalMixer, true, speedChange);
+                        sample = BassAudioSample.Create(path, BassGlobalMixer, normalize, speedChange);
+                        break;
                     case SoundBackendOption.BassSimple:
-                        return BassSimpleAudioSample.Create(path, true, speedChange);
+                        sample = BassSimpleAudioSample.Create(path, normalize, speedChange);
+                        break;
                     default:
-                        throw new NotImplementedException("Backend not supported");
+                        MajDebug.LogError("Backend not supported");
+                        return AudioSampleWrap.Empty;
                 }
+                MajDebug.LogInfo("Channel created");
+                return sample;
             }
             else
             {
@@ -472,39 +479,55 @@ namespace MajdataPlay.IO
         }
         public AudioSampleWrap LoadMusicFromUri(Uri uri)
         {
+            MajDebug.LogInfo($"Try creating channel from uri: {uri}");
             var backend = MajInstances.Settings.Audio.Backend;
+            var sample = default(AudioSampleWrap);
             switch (backend)
             {
                 case SoundBackendOption.Unity:
-                    return UnityAudioSample.Create(uri.OriginalString, gameObject);
+                    sample = UnityAudioSample.Create(uri.OriginalString, gameObject);
+                    break;
                 case SoundBackendOption.Asio:
                 case SoundBackendOption.Wasapi:
-                    return BassAudioSample.CreateFromUri(uri, BassGlobalMixer);
+                    sample = BassAudioSample.CreateFromUri(uri, BassGlobalMixer);
+                    break;
                 case SoundBackendOption.BassSimple:
-                    return BassSimpleAudioSample.CreateFromUri(uri);
+                    sample = BassSimpleAudioSample.CreateFromUri(uri);
+                    break;
                 default:
-                    throw new NotImplementedException("Backend not supported");
+                    MajDebug.LogError("Backend not supported");
+                    return AudioSampleWrap.Empty;
             }
+            MajDebug.LogInfo("Channel created");
+            return sample;
         }
-        public async UniTask<AudioSampleWrap> LoadMusicAsync(string path, bool speedChange = false)
+        public async UniTask<AudioSampleWrap> LoadMusicAsync(string path, bool normalize = true, bool speedChange = false)
         {
+            MajDebug.LogInfo($"Try creating channel from file: {path}");
             await UniTask.SwitchToThreadPool();
             var backend = MajInstances.Settings.Audio.Backend;
             if (File.Exists(path))
             {
+                var sample = default(AudioSampleWrap);
                 switch (backend)
                 {
                     case SoundBackendOption.Unity:
                         await UniTask.SwitchToMainThread();
-                        return await UnityAudioSample.CreateAsync($"file://{path}", gameObject);
+                        sample = await UnityAudioSample.CreateAsync($"file://{path}", gameObject);
+                        break;
                     case SoundBackendOption.Asio:
                     case SoundBackendOption.Wasapi:
-                        return await BassAudioSample.CreateAsync(path, BassGlobalMixer, true, speedChange);
+                        sample = await BassAudioSample.CreateAsync(path, BassGlobalMixer, normalize, speedChange);
+                        break;
                     case SoundBackendOption.BassSimple:
-                        return await BassSimpleAudioSample.CreateAsync(path, true, speedChange);
+                        sample = await BassSimpleAudioSample.CreateAsync(path, normalize, speedChange);
+                        break;
                     default:
-                        throw new NotImplementedException("Backend not supported");
+                        MajDebug.LogError("Backend not supported");
+                        return AudioSampleWrap.Empty;
                 }
+                MajDebug.LogInfo("Channel created");
+                return sample;
             }
             else
             {
@@ -514,21 +537,29 @@ namespace MajdataPlay.IO
         }
         public async UniTask<AudioSampleWrap> LoadMusicFromUriAsync(Uri uri)
         {
+            MajDebug.LogInfo($"Try creating channel from uri: {uri}");
             await UniTask.SwitchToThreadPool();
             var backend = MajInstances.Settings.Audio.Backend;
+            var sample = default(AudioSampleWrap);
             switch (backend)
             {
                 case SoundBackendOption.Unity:
                     await UniTask.SwitchToMainThread();
-                    return await UnityAudioSample.CreateAsync(uri.OriginalString, gameObject);
+                    sample = await UnityAudioSample.CreateAsync(uri.OriginalString, gameObject);
+                    break;
                 case SoundBackendOption.Asio:
                 case SoundBackendOption.Wasapi:
-                    return BassAudioSample.CreateFromUri(uri, BassGlobalMixer);
+                    sample = BassAudioSample.CreateFromUri(uri, BassGlobalMixer);
+                    break;
                 case SoundBackendOption.BassSimple:
-                    return BassSimpleAudioSample.CreateFromUri(uri);
+                    sample = BassSimpleAudioSample.CreateFromUri(uri);
+                    break;
                 default:
-                    throw new NotImplementedException("Backend not supported");
+                    MajDebug.LogError("Backend not supported");
+                    return AudioSampleWrap.Empty;
             }
+            MajDebug.LogInfo("Channel created");
+            return sample;
         }
         public AudioSampleWrap? PlaySFX(string name, bool isLoop = false)
         {
@@ -633,7 +664,7 @@ namespace MajdataPlay.IO
                         { 0f, 0f },
                     };
                     break;
-                case 5: // 5.1
+                case 6: // 5.1
                     matrix = new float[5, 2]
                     {
                         { 0f, 0f },
@@ -663,7 +694,6 @@ namespace MajdataPlay.IO
             switch(main)
             {
                 case "Rear":
-                    Speaker = BassFlags.SpeakerRear;
                     if(chCount < 4)
                     {
                         goto default;
@@ -720,7 +750,6 @@ namespace MajdataPlay.IO
                     }
                     break;
                 case "Side":
-                    Speaker = BassFlags.SpeakerRearCenter;
                     if (chCount < 8)
                     {
                         goto default;
@@ -739,14 +768,12 @@ namespace MajdataPlay.IO
                     }
                     break;
                 case "CenterAndLFE":
-                    Speaker = BassFlags.SpeakerCenterLFE;
                     if (chCount is not (3 or 6 or 8))
                     {
                         goto default;
                     }
                     if (chCount == 3)
                     {
-                        Speaker = BassFlags.SpeakerCenter;
                         matrix[2, 0] = 0.5f;
                         matrix[2, 1] = 0.5f;
                     }
@@ -773,7 +800,6 @@ namespace MajdataPlay.IO
                     break;
                 case "Front":
                 default:
-                    Speaker = BassFlags.SpeakerFront;
                     if (isForceMono)
                     {
                         matrix[0, 0] = .5f;
