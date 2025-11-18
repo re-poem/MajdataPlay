@@ -145,12 +145,6 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _noteController.ThisFrameSec;
         }
-        public float FakeThisFrameSec
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _noteController.FakeThisFrameSec;
-        }
-
         protected bool IsUseButtonRingForTouch
         {
             get; private set;
@@ -356,9 +350,11 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         /// <para>If the current moment is ahead of the judgment line, the result is a negative number.</para>
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual float GetTimeSpanToArriveTiming() => ThisFrameSec - Timing;
+        protected virtual float GetTimeSpanToArriveTiming() => ThisFrameSec - Timing; 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual float GetFakeTimeSpanToArriveTiming() => FakeThisFrameSec - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing);
+        protected virtual float GetSVTime(float time) => Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(time, UsingSV.ToString());
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual float GetFakeTimeSpanToArriveTiming() => GetSVTime(ThisFrameSec) - GetSVTime(Timing);
         /// <summary>
         /// Gets the time offset from the current moment to the answer frame.
         /// </summary>

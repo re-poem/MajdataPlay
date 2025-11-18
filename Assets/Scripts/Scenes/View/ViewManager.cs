@@ -63,8 +63,8 @@ namespace MajdataPlay.Scenes.View
         public float ThisFixedUpdateSec => _thisFrameSec;
         public float AudioTimeNoOffset => _audioTimeNoOffset;
         public float Offset { get; set; } = 0f;
-        public List<Tuple<float, float>> SVList => _svList;
-        public List<Func<float, float>> PositionFunctions => _positionFunctions;
+        public Dictionary<string, List<Tuple<float, float>>> SVLists => _svLists;
+        public Dictionary<string, List<Func<float, float>>> PositionFunctionses => _positionFunctionses;
 
         public GameObject LoadingIndicator;
 
@@ -76,8 +76,8 @@ namespace MajdataPlay.Scenes.View
         static float _fakeThisFrameSec = 0f;
         static float _audioTimeNoOffset = 0f;
 
-        List<Tuple<float, float>> _svList = new();
-        List<Func<float, float>> _positionFunctions = new();
+        Dictionary<string, List<Tuple<float, float>>> _svLists = new();
+        Dictionary<string, List<Func<float, float>>> _positionFunctionses = new();
 
         float _playbackSpeed = 1f;
 

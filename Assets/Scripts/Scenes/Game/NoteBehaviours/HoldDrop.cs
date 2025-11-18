@@ -366,29 +366,30 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var holdDistance = holdTime * Speed + 4.8f;
 
 
-            var fakeTiming = GetFakeTimeSpanToArriveTiming();
-            var fakeDistance = fakeTiming * Speed + 4.8f;
+            float fakeTiming;
+            float fakeDistance;
             //var fakeScaleRate = _noteAppearRate;
-            var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+            float fakeDestScale;
 
-            var fakeLength = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing);
-            var fakeHoldTime = fakeTiming - fakeLength;
-            var fakeHoldDistance = fakeHoldTime * Speed + 4.8f;
+            //var fakeLength = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing + Length) - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(Timing);
+            float fakeHoldTime;
+            float fakeHoldDistance;
 
-            switch (UsingSV)
+            if (UsingSV == 0)
             {
-                case 0:
-                    fakeTiming = timing;
-                    fakeDistance = distance;
-                    fakeDestScale = destScale;
-                    fakeHoldTime = holdTime;
-                    fakeHoldDistance = holdDistance;
-                    break;
-                case 1:
-                    break;
-                default:
-                    // TODO: Sub-SV
-                    break;
+                fakeTiming = timing;
+                fakeDistance = distance;
+                fakeDestScale = destScale;
+                fakeHoldTime = holdTime;
+                fakeHoldDistance = holdDistance;
+            }
+            else
+            {
+                fakeTiming = GetFakeTimeSpanToArriveTiming();
+                fakeDistance = fakeTiming * Speed + 4.8f;
+                fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+                fakeHoldTime = fakeTiming - (GetSVTime(Timing + Length) - GetSVTime(Timing)); // - FakeLength
+                fakeHoldDistance = fakeHoldTime * Speed + 4.8f;
             }
 
             switch (State)

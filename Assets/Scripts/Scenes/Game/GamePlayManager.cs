@@ -44,9 +44,8 @@ namespace MajdataPlay.Scenes.Game
         /// The timing of the current Update<para>Unit: Second</para>
         /// </summary>
         public float ThisFrameSec => _thisFrameSec;
-        public float FakeThisFrameSec => _fakeThisFrameSec;
-        public List<Tuple<float, float>> SVList => _svList;
-        public List<Func<float, float>> PositionFunctions => _positionFunctions;
+        public Dictionary<string, List<Tuple<float, float>>> SVLists => _svLists;
+        public Dictionary<string, List<Func<float, float>>> PositionFunctionses => _positionFunctionses;
         /// <summary>
         ///  The first Note appear timing
         /// </summary>
@@ -107,9 +106,6 @@ namespace MajdataPlay.Scenes.Game
         float _thisFrameSec = 0f;
         [ReadOnlyField]
         [SerializeField]
-        float _fakeThisFrameSec = 0f;
-        [ReadOnlyField]
-        [SerializeField]
         float _thisFixedUpdateSec = 0f;
         [ReadOnlyField]
         [SerializeField]
@@ -119,9 +115,9 @@ namespace MajdataPlay.Scenes.Game
         float _audioStartTime = -114514;
         int _chartRotation = 0;
         [SerializeField]
-        List<Tuple<float, float>> _svList = new();
+        Dictionary<string, List<Tuple<float, float>>> _svLists = new();
         [SerializeField]
-        List<Func<float, float>> _positionFunctions = new();
+        Dictionary<string, List<Func<float, float>>> _positionFunctionses = new();
 
         bool _isTrackSkipAvailable = MajEnv.Settings?.Game.TrackSkip ?? false;
         bool _isFastRetryAvailable = MajEnv.Settings?.Game.FastRetry ?? false;
@@ -1108,7 +1104,6 @@ namespace MajdataPlay.Scenes.Game
                             _thisFrameSec += realTimeDifference;
                         }
 #endif
-                        _fakeThisFrameSec = ((INoteTimeProvider)this).GetPositionAtTime(_thisFrameSec);
                         var sb = ZString.CreateStringBuilder(true);
                         try
                         {

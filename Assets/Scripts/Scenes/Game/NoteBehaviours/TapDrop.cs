@@ -13,6 +13,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
 using WebSocketSharp;
 #nullable enable
 namespace MajdataPlay.Scenes.Game.Notes.Behaviours
@@ -250,23 +251,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var scaleRate = _noteAppearRate;
             var destScale = distance * scaleRate + (1 - scaleRate * 1.225f);
 
-            var fakeTiming = GetFakeTimeSpanToArriveTiming();
-            var fakeDistance = fakeTiming * Speed + 4.8f;
+            float fakeTiming;
+            float fakeDistance;
             //var fakeScaleRate = _noteAppearRate;
-            var fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
+            float fakeDestScale;
 
-            switch (UsingSV)
+            if (UsingSV == 0)
             {
-                case 0:
-                    fakeTiming = timing;
-                    fakeDistance = distance;
-                    fakeDestScale = destScale;
-                    break;
-                case 1:
-                    break;
-                default:
-                    // TODO: Sub-SV
-                    break;
+                fakeTiming = timing;
+                fakeDistance = distance;
+                fakeDestScale = destScale;
+            }
+            else
+            {
+                fakeTiming = GetFakeTimeSpanToArriveTiming();
+                fakeDistance = fakeTiming * Speed + 4.8f;
+                fakeDestScale = fakeDistance * scaleRate + (1 - scaleRate * 1.225f);
             }
 
             switch (State)

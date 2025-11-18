@@ -331,24 +331,22 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var stiming = ThisFrameSec - StartTiming;
             var remaining = GetRemainingTimeWithoutOffset();
             
-            var fakeTiming = GetFakeTimeSpanToArriveTiming();
-            var fakesTiming = FakeThisFrameSec - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(StartTiming);
-            var fakeLength = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(StartTiming + Length) - Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(StartTiming);
-            var fakeRemaining = Math.Max(fakeLength - fakeTiming, 0);
+            float fakeTiming;
+            float fakesTiming;
+            float fakeLength;
+            //var fakeRemaining = Math.Max(fakeLength - fakeTiming, 0);
 
-            switch (UsingSV)
+            if (UsingSV == 0)
             {
-                case 0:
-                    fakeTiming = timing;
-                    fakesTiming = stiming;
-                    fakeRemaining = remaining;
-                    fakeLength = Length;
-                    break;
-                case 1:
-                    break;
-                default:
-                    // TODO: Sub-SV
-                    break;
+                fakeTiming = timing;
+                fakesTiming = stiming;
+                fakeLength = Length;
+            }
+            else
+            {
+                fakeTiming = GetSVTime(ThisFrameSec) - GetSVTime(Timing);
+                fakesTiming = GetSVTime(ThisFrameSec) - GetSVTime(StartTiming);
+                fakeLength = GetSVTime(StartTiming + Length) - GetSVTime(StartTiming);
             }
 
             switch (State)
@@ -565,15 +563,10 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
                 {
                     if (IsFinished)
                     {
-                        switch (UsingSV)
+                        if (UsingSV != 0)
                         {
-                            case 1:
-                                _judgeTiming = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_judgeTiming);
-                                _lastWaitTimeSec = Majdata<INoteTimeProvider>.Instance!.GetPositionAtTime(_lastWaitTimeSec);
-                                break;
-                            default:
-                                // TODO: Sub-SV
-                                break;
+                            _judgeTiming = GetSVTime(_judgeTiming);
+                            _lastWaitTimeSec = GetSVTime(_lastWaitTimeSec);
                         }
                         HideAllBar();
                         if (IsClassic)

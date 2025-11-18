@@ -448,22 +448,21 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             var pow = -Mathf.Exp(8 * (timing * 0.43f / moveDuration) - 0.85f) + 0.42f;
             var distance = Mathf.Clamp(pow, 0f, 0.4f);
 
-            var fakeTiming = GetFakeTimeSpanToArriveTiming();
-            var fakePow = -Mathf.Exp(8 * (fakeTiming * 0.43f / moveDuration) - 0.85f) + 0.42f;
-            var fakeDistance = Mathf.Clamp(fakePow, 0f, 0.4f);
+            float fakeTiming;
+            float fakePow;
+            float fakeDistance;
 
-            switch (UsingSV)
+            if (UsingSV == 0)
             {
-                case 0:
-                    fakeTiming = timing;
-                    fakePow = pow;
-                    fakeDistance = distance;
-                    break;
-                case 1:
-                    break;
-                default:
-                    // TODO: Sub-SV
-                    break;
+                fakeTiming = timing;
+                //fakePow = pow;
+                fakeDistance = distance;
+            }
+            else
+            {
+                fakeTiming = GetFakeTimeSpanToArriveTiming();
+                fakePow = -Mathf.Exp(8 * (fakeTiming * 0.43f / moveDuration) - 0.85f) + 0.42f;
+                fakeDistance = Mathf.Clamp(fakePow, 0f, 0.4f);
             }
 
             switch (State)

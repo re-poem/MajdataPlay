@@ -73,11 +73,11 @@ namespace MajdataPlay.Scenes.Game
                        BreakFinishedCount == BreakSum;
             }
         }
-        public int TapFinishedCount { get; private set; }
-        public int HoldFinishedCount { get; private set; }
-        public int SlideFinishedCount { get; private set; }
-        public int TouchFinishedCount { get; private set; }
-        public int BreakFinishedCount { get; private set; }
+        public int TapFinishedCount { get; set; }
+        public int HoldFinishedCount { get; set; }
+        public int SlideFinishedCount { get; set; }
+        public int TouchFinishedCount { get; set; }
+        public int BreakFinishedCount { get; set; }
         public int NoteFinishedCount
         {
             get
@@ -90,28 +90,28 @@ namespace MajdataPlay.Scenes.Game
             }
         }
 
-        public int TapSum { get; private set; }
-        public int HoldSum { get; private set; }
-        public int SlideSum { get; private set; }
-        public int TouchSum { get; private set; }
-        public int BreakSum { get; private set; }
-        public int NoteSum { get; private set; }
+        public int TapSum { get; set; }
+        public int HoldSum { get; set; }
+        public int SlideSum { get; set; }
+        public int TouchSum { get; set; }
+        public int BreakSum { get; set; }
+        public int NoteSum { get; set; }
 
         public long TotalNoteScore => TotalNoteBaseScore + TotalNoteExtraScore;
-        public long TotalNoteBaseScore { get; private set; }
-        public long TotalNoteExtraScore { get; private set; }
+        public long TotalNoteBaseScore { get; set; }
+        public long TotalNoteExtraScore { get; set; }
 
         public long CurrentNoteScore => CurrentNoteBaseScore + CurrentNoteExtraScore;
         public long CurrentNoteScoreClassic => CurrentNoteBaseScore + CurrentNoteExtraScoreClassic;
-        public long CurrentNoteBaseScore { get; private set; }
-        public long CurrentNoteExtraScore { get; private set; }
-        public long CurrentNoteExtraScoreClassic { get; private set; }
+        public long CurrentNoteBaseScore { get; set; }
+        public long CurrentNoteExtraScore { get; set; }
+        public long CurrentNoteExtraScoreClassic { get; set; }
 
         public long TotalLostNoteScore => LostNoteBaseScore + LostNoteExtraScore;
         public long TotalLostNoteScoreClassic => LostNoteBaseScore + LostNoteExtraScoreClassic;
-        public long LostNoteBaseScore { get; private set; }
-        public long LostNoteExtraScore { get; private set; }
-        public long LostNoteExtraScoreClassic { get; private set; }
+        public long LostNoteBaseScore { get; set; }
+        public long LostNoteExtraScore { get; set; }
+        public long LostNoteExtraScoreClassic { get; set; }
 
         readonly static double[] _accRate = new double[5]
         {

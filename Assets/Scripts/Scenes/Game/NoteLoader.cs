@@ -19,12 +19,16 @@ using MajdataPlay.Utils;
 using MajSimai;
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using TreeEditor;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace MajdataPlay.Scenes.Game
@@ -283,13 +287,12 @@ namespace MajdataPlay.Scenes.Game
 
             if (maiChart.NoteTimings.Length != 0)
             {
-
                 var lastNoteTime = maiChart.NoteTimings[^1].Timing;
+                var svList = Majdata<GamePlayManager>.Instance!.SVLists["1"] = new();
 
                 for (var i = 0; i < maiChart.NoteTimings.Length; i++)
                 {
                     var timing = maiChart.NoteTimings[i];
-                    var svList = Majdata<GamePlayManager>.Instance!.SVList;
                     if (svList.Count == 0 || svList[svList.Count - 1].Item2 != timing.SVeloc)
                     {
                         svList.Add(new Tuple<float, float>((float)timing.Timing, timing.SVeloc));
@@ -354,6 +357,9 @@ namespace MajdataPlay.Scenes.Game
                                     };
                                     CreateSlideGroup(timing, foldedSlide, eachNotes); // 星星组
                                     _noteCount += foldedSlide.Count - 1;
+                                    break;
+                                case SimaiNoteType.Command:
+                                    CreateCommand(timing, note);
                                     break;
                             }
                             _noteCount++;
@@ -484,7 +490,8 @@ namespace MajdataPlay.Scenes.Game
                 {
                     var noteCount = timing.Notes.Length;
                     var noHeadSlideCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Slide && x.IsSlideNoHead).Length;
-                    if (noteCount - noHeadSlideCount == 1)
+                    var commandCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Command).Length;
+                    if (noteCount - noHeadSlideCount - commandCount == 1)
                         isEach = false;
                 }
                 _isHasTap[startPos - 1] = true;
@@ -545,7 +552,8 @@ namespace MajdataPlay.Scenes.Game
                 {
                     var noteCount = timing.Notes.Length;
                     var noHeadSlideCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Slide && x.IsSlideNoHead).Length;
-                    if (noteCount - noHeadSlideCount == 1)
+                    var commandCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Command).Length;
+                    if (noteCount - noHeadSlideCount - commandCount == 1)
                         isEach = false;
                 }
                 _isHasHold[startPos - 1] = true;
@@ -625,7 +633,8 @@ namespace MajdataPlay.Scenes.Game
                         {
                             var noteCount = timing.Notes.Length;
                             var noHeadSlideCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Slide && x.IsSlideNoHead).Length;
-                            if (noteCount - noHeadSlideCount == 1)
+                            var commandCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Command).Length;
+                            if (noteCount - noHeadSlideCount - commandCount == 1)
                             {
                                 isEach = false;
                             }
@@ -706,7 +715,8 @@ namespace MajdataPlay.Scenes.Game
                 {
                     var noteCount = timing.Notes.Length;
                     var noHeadSlideCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Slide && x.IsSlideNoHead).Length;
-                    if (noteCount - noHeadSlideCount == 1)
+                    var commandCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Command).Length;
+                    if (noteCount - noHeadSlideCount - commandCount == 1)
                         isEach = false;
                 }
                 var poolingInfo = new TouchPoolingInfo()
@@ -774,6 +784,15 @@ namespace MajdataPlay.Scenes.Game
                 var noteSortOrder = _touchSortOrder;
                 if (appearTiming < -5f && _gpManager is not null)
                     _gpManager.FirstNoteAppearTiming = Mathf.Min(_gpManager.FirstNoteAppearTiming, appearTiming);
+
+                if (isEach)
+                {
+                    var noteCount = timing.Notes.Length;
+                    var noHeadSlideCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Slide && x.IsSlideNoHead).Length;
+                    var commandCount = timing.Notes.FindAll(x => x.Type == SimaiNoteType.Command).Length;
+                    if (noteCount - noHeadSlideCount - commandCount == 1)
+                        isEach = false;
+                }
 
                 _isHasTouchHold[(int)sensorPos] = true;
                 _touchSortOrder -= NOTE_LAYER_COUNT[note.Type];
@@ -1161,6 +1180,86 @@ namespace MajdataPlay.Scenes.Game
                                                       column,
                                                       note.RawContent,
                                                       BuildSyntaxErrorMessage(line, column, note.RawContent));
+            }
+        }
+        private void CreateCommand(SimaiTimingPoint timing, SimaiNote note)
+        {
+            GameObject cmdObj = new();
+            CommandDrop cmdCom = cmdObj.AddComponent<CommandDrop>();
+            cmdObj.transform.SetParent(GameObject.Find("Notes").transform.GetChild(8));
+
+            cmdCom.Timing = (float)timing.Timing;
+            string[] cmd = note.RawContent[1..^1].Split('.');
+            if (cmd[0] == "data")
+            {
+                cmdCom.Times = 1;
+
+                var value = int.Parse(cmd[2]);
+
+                ObjectCounter oc = Majdata<ObjectCounter>.Instance!.GetComponent<ObjectCounter>();
+                switch (cmd[1])
+                {
+                    case "tap":
+                        cmdCom.Handler = () => { oc.TapSum = value; };
+                        break;
+                    case "hod":
+                    case "hold":
+                        cmdCom.Handler = () => { oc.HoldSum = value; };
+                        break;
+                    case "sld":
+                    case "slide":
+                        cmdCom.Handler = () => { oc.SlideSum = value; };
+                        break;
+                    case "toh":
+                    case "touch":
+                        cmdCom.Handler = () => { oc.TouchSum = value; };
+                        break;
+                    case "brk":
+                    case "break":
+                        cmdCom.Handler = () => { oc.BreakSum = value; };
+                        break;
+                    default:
+                        {
+                            var property = typeof(ObjectCounter).GetProperty(cmd[1]);
+
+                            if (property != null && property.CanWrite)
+                                property.SetValue(oc, value);
+                        }
+                        break;
+                }
+            }
+            //else if (cmd[0] == "ui")
+            //{
+            //    if (cmd[1] == "bpmrange")
+            //    {
+            //        NDCompo.times = 1;
+            //        NDCompo.Handler = () =>
+            //        {
+            //            GameObject.Find("objBPMRange").GetComponent<Text>().text = $"{cmd[2]} - {cmd[3]}";
+            //        };
+            //    }
+            //    else if (cmd[1] == "meter")
+            //    {
+            //        NDCompo.times = 1;
+            //        NDCompo.Handler = () =>
+            //        {
+            //            GameObject.Find("objMeter").GetComponent<TextMeshProUGUI>().text = $"{cmd[2]}\n{cmd[3]}";
+            //        };
+            //    }
+            //}
+            else if (cmd[0] == "sv")
+            {
+                float speed = float.Parse(cmd[2] + (cmd.Length == 4 ? '.' + cmd[3] : ""));
+                var SVLists = Majdata<INoteTimeProvider>.Instance!.SVLists;
+
+                List<Tuple<float, float>> SVList;
+                if (SVLists.ContainsKey(cmd[1]))
+                    SVList = SVLists[cmd[1]];
+                else
+                    SVList = SVLists[cmd[1]] = new();
+
+                if (SVList.Count == 0 || SVList[^1].Item2 != speed)
+                    SVList.Add(new Tuple<float, float>((float)timing.Timing, speed));
             }
         }
         void UpdateStarRotateSpeed<T>(CreateSlideResult<T> result, float totalLen, float totalSlideLen) where T : SlideBase
