@@ -28,6 +28,7 @@ namespace MajdataPlay.Scenes.Result
         OnlineSongDetail? _onlineDetail;
         MaiScore? _score;
 
+        bool _isLocalOrGuest = false;
         bool _isInited = false;
         bool _isThumbUpRequested = false;
         bool _isAlreadyThumbUp = false;
@@ -44,6 +45,7 @@ namespace MajdataPlay.Scenes.Result
             {
                 infotext.text = "";
                 thumb.gameObject.SetActive(false);
+                _isLocalOrGuest = true;
                 return;
             }
                 
@@ -51,6 +53,7 @@ namespace MajdataPlay.Scenes.Result
             if (serverInfo is null || serverInfo.RuntimeConfig.AuthMethod == NetAuthMethodOption.None)
             {
                 thumb.gameObject.SetActive(false);
+                _isLocalOrGuest = true;
                 return;
             }
             _isInited = true;
@@ -60,7 +63,7 @@ namespace MajdataPlay.Scenes.Result
         }
         void Update()
         {
-            if(!_isInited || _isThumbUpRequested || _onlineDetail is null)
+            if(!_isInited || _isThumbUpRequested || _onlineDetail is null || _isLocalOrGuest)
             {
                 return;
             }
@@ -138,7 +141,7 @@ namespace MajdataPlay.Scenes.Result
         }
         public async Task SendScoreAsync(CancellationToken token = default)
         {
-            if(_onlineDetail is null || _score is null || _isScorePosted)
+            if(!_isInited || _onlineDetail is null || _score is null || _isScorePosted || _isLocalOrGuest)
             {
                 return;
             }
