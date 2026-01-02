@@ -226,7 +226,7 @@ namespace MajdataPlay.Settings
         public string Proxy { get; init; } = string.Empty;
 #endif
         [Preserve]
-        public ApiEndpoint[] ApiEndpoints { get; init; } = new ApiEndpoint[]
+        public ApiEndpoint[] ApiEndpoints { get; set; } = new ApiEndpoint[]
         {
             new ApiEndpoint()
             {

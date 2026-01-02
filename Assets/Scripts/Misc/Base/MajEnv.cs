@@ -1,7 +1,9 @@
 using Cysharp.Threading.Tasks;
 using HidSharp.Platform.Windows;
 using LibVLCSharp;
+using MajdataPlay.Buffers;
 using MajdataPlay.Extensions;
+using MajdataPlay.Net;
 using MajdataPlay.Numerics;
 using MajdataPlay.Settings;
 using MajdataPlay.Settings.Runtime;
@@ -251,11 +253,15 @@ namespace MajdataPlay
                 else
                 {
                     Settings = setting;
-
+                    using var buffer = new RentedList<ApiEndpoint>();
                     for (var i = 0; i < Settings.Online.ApiEndpoints.Length; i++)
                     {
-                        ref var apiEndpoint = ref Settings.Online.ApiEndpoints[i];
+                        var apiEndpoint = Settings.Online.ApiEndpoints[i];
                         var uri = apiEndpoint.Url;
+                        if(uri is null || string.IsNullOrEmpty(apiEndpoint.Name))
+                        {
+                            continue;
+                        }
                         if (uri.OriginalString.LastOrDefault() != '/')
                         {
                             apiEndpoint = new()
@@ -268,7 +274,12 @@ namespace MajdataPlay
                         }
                         apiEndpoint.RuntimeConfig.AuthUsername = apiEndpoint.Username;
                         apiEndpoint.RuntimeConfig.AuthPassword = apiEndpoint.Password;
+                        buffer.Add(apiEndpoint);
                     }
+                    Settings.Online.ApiEndpoints = buffer.GroupBy(x => x.Url)
+                                                         .Select(x => x.FirstOrDefault())
+                                                         .Where(x => x is not null)
+                                                         .ToArray();
                     //Reset Mod option after reboot
                     //Settings.Mod = new ModOptions();
                 }
