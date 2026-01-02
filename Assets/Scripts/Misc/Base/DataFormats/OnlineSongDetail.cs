@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using MajdataPlay.Buffers;
 using MajdataPlay.IO;
@@ -69,10 +69,10 @@ namespace MajdataPlay
         bool _isPreloaded = false;
 
         string? _videoPath = null;
-        AudioSampleWrap? _audioTrack = null;
-        AudioSampleWrap? _previewAudioTrack = null;
-        Sprite? _cover = null;
-        Sprite? _fullSizeCover = null;
+        WeakReference<AudioSampleWrap> _audioTrackRef = new(null!);
+        WeakReference<AudioSampleWrap> _previewAudioTrackRef = new(null!);
+        WeakReference<Sprite> _coverRef = new(null!);
+        WeakReference<Sprite> _fullSizeCoverRef = new(null!);
         SimaiFile? _maidata = null;
 
         readonly AsyncLock _previewAudioTrackLock = new();
@@ -85,7 +85,7 @@ namespace MajdataPlay
 
         ~OnlineSongDetail()
         {
-            Dispose();
+            Dispose(false);
         }
         public OnlineSongDetail(ApiEndpoint serverInfo, MajnetSongDetail songDetail)
         {
@@ -175,22 +175,17 @@ namespace MajdataPlay
                 using (@lock)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (_audioTrack is not null)
+                    if (_audioTrackRef.TryGetTarget(out var audioTrack) || _previewAudioTrackRef.TryGetTarget(out audioTrack))
                     {
-                        _previewAudioTrack = _audioTrack;
-                        return _previewAudioTrack;
-                    }
-                    else if (_previewAudioTrack is not null)
-                    {
-                        return _previewAudioTrack;
+                        return audioTrack;
                     }
                     var cacheFlagPath = Path.Combine(_cachePath, "track.cache");
                     var audioManager = MajInstances.AudioManager;
                     var sample = await audioManager.LoadMusicFromUriAsync(_trackUri);
 
-                    _previewAudioTrack = sample;
+                    _previewAudioTrackRef.SetTarget(sample);
 
-                    return _previewAudioTrack;
+                    return sample;
                 }
             }
             catch (Exception e)
@@ -386,28 +381,46 @@ namespace MajdataPlay
         }
         public void Dispose()
         {
+            Dispose(true);
+        }
+        void Dispose(bool disposing)
+        {
             if (_isDisposed)
             {
                 return;
             }
             _isDisposed = true;
-            _audioTrack?.Dispose();
-            _previewAudioTrack?.Dispose();
+            if (_audioTrackRef.TryGetTarget(out var audioTrack))
+            {
+                audioTrack.Dispose();
+            }
+            if (_previewAudioTrackRef.TryGetTarget(out audioTrack))
+            {
+                audioTrack.Dispose();
+            }
             UniTask.Post(() =>
             {
-                var tex1 = _cover?.texture;
-                var tex2 = _fullSizeCover?.texture;
-                GameObject.DestroyImmediate(_cover, true);
-                GameObject.DestroyImmediate(_fullSizeCover, true);
-
-                GameObject.DestroyImmediate(tex1, true);
-                GameObject.DestroyImmediate(tex2, true);
+                if (_coverRef.TryGetTarget(out var cover) && cover.IsNativeAlive())
+                {
+                    var tex = cover.texture;
+                    GameObject.DestroyImmediate(cover, true);
+                    GameObject.DestroyImmediate(tex, true);
+                }
+                if (_fullSizeCoverRef.TryGetTarget(out cover) && cover.IsNativeAlive())
+                {
+                    var tex = cover.texture;
+                    GameObject.DestroyImmediate(cover, true);
+                    GameObject.DestroyImmediate(tex, true);
+                }
             });
             _maidata = null;
-            _audioTrack = null;
-            _previewAudioTrack = null;
-            _cover = null;
-            _fullSizeCover = null;
+            if(disposing)
+            {
+                _audioTrackRef.SetTarget(null!);
+                _previewAudioTrackRef.SetTarget(null!);
+                _coverRef.SetTarget(null!);
+                _fullSizeCoverRef.SetTarget(null!);
+            }
             _videoPath = null;
         }
         public async ValueTask DisposeAsync()
@@ -417,30 +430,35 @@ namespace MajdataPlay
                 return;
             }
             _isDisposed = true;
-            if (_audioTrack is not null)
+            if (_audioTrackRef.TryGetTarget(out var audioTrack))
             {
-                await _audioTrack.DisposeAsync();
+                await audioTrack.DisposeAsync();
             }
-            if (_previewAudioTrack is not null)
+            if (_previewAudioTrackRef.TryGetTarget(out audioTrack))
             {
-                await _previewAudioTrack.DisposeAsync();
+                await audioTrack.DisposeAsync();
             }
             await using (UniTask.ReturnToCurrentSynchronizationContext())
             {
                 await UniTask.SwitchToMainThread();
-                var tex1 = _cover?.texture;
-                var tex2 = _fullSizeCover?.texture;
-                GameObject.DestroyImmediate(_cover, true);
-                GameObject.DestroyImmediate(_fullSizeCover, true);
-
-                GameObject.DestroyImmediate(tex1, true);
-                GameObject.DestroyImmediate(tex2, true);
+                if (_coverRef.TryGetTarget(out var cover) && cover.IsNativeAlive())
+                {
+                    var tex = cover.texture;
+                    GameObject.DestroyImmediate(cover, true);
+                    GameObject.DestroyImmediate(tex, true);
+                }
+                if (_fullSizeCoverRef.TryGetTarget(out cover) && cover.IsNativeAlive())
+                {
+                    var tex = cover.texture;
+                    GameObject.DestroyImmediate(cover, true);
+                    GameObject.DestroyImmediate(tex, true);
+                }
             }
             _maidata = null;
-            _audioTrack = null;
-            _previewAudioTrack = null;
-            _cover = null;
-            _fullSizeCover = null;
+            _audioTrackRef.SetTarget(null!);
+            _previewAudioTrackRef.SetTarget(null!);
+            _coverRef.SetTarget(null!);
+            _fullSizeCoverRef.SetTarget(null!);
             _videoPath = null;
         }
         //public async ValueTask UnloadUnityAssetsAsync(CancellationToken token = default)
@@ -492,9 +510,9 @@ namespace MajdataPlay
                     using (@lock)
                     {
                         token.ThrowIfCancellationRequested();
-                        if (_audioTrack is not null)
+                        if (_audioTrackRef.TryGetTarget(out var audioTrack))
                         {
-                            return _audioTrack;
+                            return audioTrack;
                         }
                         var savePath = Path.Combine(_cachePath, "track.mp3");
                         var cacheFlagPath = Path.Combine(_cachePath, "track.cache");
@@ -517,14 +535,14 @@ namespace MajdataPlay
                             }
                             await DownloadFile(_trackUri, savePath, false, progress, token);
                         }
-                        _audioTrack = sampleWarp;
+                        _audioTrackRef.SetTarget(sampleWarp);
 
                         return sampleWarp;
                     }
                 }
                 catch (Exception e)
                 {
-                    _audioTrack = null;
+                    _audioTrackRef.SetTarget(null!);
                     if (e is not OperationCanceledException)
                     {
                         MajDebug.LogException(e);
@@ -548,9 +566,9 @@ namespace MajdataPlay
                     using (@lock)
                     {
                         token.ThrowIfCancellationRequested();
-                        if (_cover is not null)
+                        if (_coverRef.TryGetTarget(out var cover) && await cover.IsNativeAliveAsync())
                         {
-                            return _cover;
+                            return cover;
                         }
                         var savePath = Path.Combine(_cachePath, "bg.jpg");
                         var cacheFlagPath = Path.Combine(_cachePath, $"bg.jpg.cache");
@@ -559,7 +577,7 @@ namespace MajdataPlay
                         {
                             if (!File.Exists(savePath))
                             {
-                                _cover = MajEnv.EmptySongCover;
+                                _coverRef.SetTarget(MajEnv.EmptySongCover);
                             }
                             else if(!loadIntoMemory)
                             {
@@ -569,9 +587,10 @@ namespace MajdataPlay
                             else
                             {
                                 progress?.Report(1);
-                                _cover = await SpriteLoader.LoadAsync(savePath, token);
+                                cover = await SpriteLoader.LoadAsync(savePath, token);
                             }
-                            return _cover;
+                            _coverRef.SetTarget(cover);
+                            return cover;
                         }
                         try
                         {
@@ -586,14 +605,9 @@ namespace MajdataPlay
                             if (e.ErrorCode is HttpErrorCode.Unsuccessful)
                             {
                                 using var _ = File.Create(cacheFlagPath);
-                                _cover = MajEnv.EmptySongCover;
-                                return _cover;
                             }
-                            else
-                            {
-                                _cover = MajEnv.EmptySongCover;
-                                return _cover;
-                            }
+                            _coverRef.SetTarget(MajEnv.EmptySongCover);
+                            return MajEnv.EmptySongCover;
                         }
                         finally
                         {
@@ -601,9 +615,10 @@ namespace MajdataPlay
                         }
 
                         token.ThrowIfCancellationRequested();
-                        _cover = await SpriteLoader.LoadAsync(savePath, token);
+                        cover = await SpriteLoader.LoadAsync(savePath, token);
 
-                        return _cover;
+                        _coverRef.SetTarget(cover);
+                        return cover;
                     }
                 }
                 catch (Exception e)
@@ -627,9 +642,9 @@ namespace MajdataPlay
                 using (@lock)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (_fullSizeCover is not null)
+                    if (_fullSizeCoverRef.TryGetTarget(out var cover) && await cover.IsNativeAliveAsync())
                     {
-                        return _fullSizeCover;
+                        return cover;
                     }
                     var savePath = Path.Combine(_cachePath, "bg_fullSize.jpg");
                     var cacheFlagPath = Path.Combine(_cachePath, $"bg_fullSize.jpg.cache");
@@ -638,7 +653,8 @@ namespace MajdataPlay
                     {
                         if (!File.Exists(savePath))
                         {
-                            _fullSizeCover = MajEnv.EmptySongCover;
+                            _fullSizeCoverRef.SetTarget(MajEnv.EmptySongCover);
+                            return MajEnv.EmptySongCover;
                         }
                         else if (!loadIntoMemory)
                         {
@@ -648,9 +664,10 @@ namespace MajdataPlay
                         else
                         {
                             progress?.Report(1);
-                            _fullSizeCover = await SpriteLoader.LoadAsync(savePath, token);
+                            cover = await SpriteLoader.LoadAsync(savePath, token);
                         }
-                        return _fullSizeCover;
+                        _fullSizeCoverRef.SetTarget(cover);
+                        return cover;
                     }
                     try
                     {
@@ -665,23 +682,19 @@ namespace MajdataPlay
                         if (e.ErrorCode is HttpErrorCode.Unsuccessful)
                         {
                             using var _ = File.Create(cacheFlagPath);
-                            _fullSizeCover = MajEnv.EmptySongCover;
-                            return _fullSizeCover;
                         }
-                        else
-                        {
-                            _fullSizeCover = MajEnv.EmptySongCover;
-                            return _fullSizeCover;
-                        }
+                        _fullSizeCoverRef.SetTarget(MajEnv.EmptySongCover);
+                        return MajEnv.EmptySongCover;
                     }
                     finally
                     {
                         progress?.Report(1);
                     }
                     token.ThrowIfCancellationRequested();
-                    _fullSizeCover = await SpriteLoader.LoadAsync(savePath, token);
+                    cover = await SpriteLoader.LoadAsync(savePath, token);
 
-                    return _fullSizeCover;
+                    _fullSizeCoverRef.SetTarget(cover);
+                    return cover;
                 }
             }
             catch (Exception e)
