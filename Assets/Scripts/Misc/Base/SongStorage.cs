@@ -235,14 +235,6 @@ namespace MajdataPlay
             {
                 var dir = dirs[i];
                 var path = dir.FullName;
-                var files = dir.GetFiles();
-                var maidataFile = files.FirstOrDefault(o => o.Name.ToLower() is "maidata.txt");
-                var trackFile = files.FirstOrDefault(o => o.Name.ToLower() is "track.mp3" or "track.ogg");
-
-                if (maidataFile is not null || trackFile is not null)
-                {
-                    return;
-                }
 
                 tasks.Add(GetCollection(path));
             });
@@ -289,7 +281,7 @@ namespace MajdataPlay
                     {
                         continue;
                     }
-                    progressReporter?.Report(ZString.Format(Localization.GetLocalizedText("MAJTEXT_SCANNING_CHARTS_FROM_{0}"), api.Name));
+                    progressReporter?.Report(ZString.Format("MAJTEXT_SCANNING_CHARTS_FROM_{0}".i18n(), api.Name));
                     var result = await GetOnlineCollection(api, progressReporter);
                     if (!result.IsEmpty)
                     {
@@ -377,8 +369,8 @@ namespace MajdataPlay
             var dirs = thisDir.GetDirectories()
                               .OrderBy(o => o.CreationTime)
                               .ToList();
-            var flagDirPath = System.IO.Path.Combine(rootPath, ".MajdataPlay");
-
+            var flagDirPath = Path.Combine(rootPath, ".MajdataPlay");
+            MajDebug.LogDebug($"[MaiChart Scanner]Enter folder: {rootPath}");
             if (!Directory.Exists(flagDirPath))
             {
                 var info = Directory.CreateDirectory(flagDirPath);
@@ -386,10 +378,11 @@ namespace MajdataPlay
             }
             if (dirs.Count == 0)
             {
+                MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}]Empty folder, skipping");
                 return SongCollection.Empty(rootPath, thisDir.Name);
             }
             using var charts = new RentedList<SongDetail>();
-            using var tasks = new RentedList<Task<SongDetail>>();
+            using var tasks = new RentedList<Task<SongDetail?>>();
             
             foreach (var songDir in dirs)
             {
@@ -397,36 +390,55 @@ namespace MajdataPlay
                 {
                     continue;
                 }
+                MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}]Enter folder: {songDir.Name}");
                 var files = songDir.GetFiles();
                 var maidataFile = files.FirstOrDefault(o => o.Name is "maidata.txt");
                 var trackFile = files.FirstOrDefault(o => o.Name is "track.mp3" or "track.ogg");
 
                 if (maidataFile is null || trackFile is null)
                 {
+                    MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}/{songDir.Name}]No maidata or track files found, ignored.");
                     continue;
                 }
 
                 var parsingTask = Task.Run(async () =>
                 {
-                    var chart = await SongDetail.ParseAsync(songDir.FullName);
-                    Interlocked.Increment(ref _parsedChartCount);
-                    return chart;
+                    try
+                    {
+                        MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}/{songDir.Name}]Parsing");
+                        var chart = await SongDetail.ParseAsync(songDir.FullName);
+                        Interlocked.Increment(ref _parsedChartCount);
+                        MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}/{songDir.Name}]Successfully parsed");
+                        return chart;
+                    }
+                    catch (Exception e)
+                    {
+                        MajDebug.LogError($"[MaiChart Scanner][{thisDir.Name}/{songDir.Name}]Failed to parse: {e}");
+                        return null;
+                    }
+                    finally
+                    {
+                        MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}/{songDir.Name}]Exit");
+                    }
                 });
                 Interlocked.Increment(ref _totalChartCount);
                 tasks.Add(parsingTask);
             }
             await Task.WhenAll(tasks);
-
+            var loadedChartCount = 0;
             foreach (var task in tasks)
             {
-                if (task.IsFaulted)
+                var result = task.Result;
+                if (result is null)
                 {
-                    MajDebug.LogException(task.Exception);
                     Interlocked.Decrement(ref _totalChartCount);
                     continue;
                 }
-                charts.Add(task.Result);
+                loadedChartCount++;
+                charts.Add(result);
             }
+            MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}]Chart count loaded: {loadedChartCount}");
+            MajDebug.LogDebug($"[MaiChart Scanner][{thisDir.Name}]Exit");
             return new SongCollection(rootPath, thisDir.Name, charts.ToArray());
         }
         static async Task<SongCollection> GetOnlineCollection(ApiEndpoint api, IProgress<string>? progressReporter)
