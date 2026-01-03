@@ -71,9 +71,9 @@ namespace MajdataPlay
             var files = new DirectoryInfo(chartFolder).GetFiles();
 
             _maidataPath = Path.Combine(chartFolder, "maidata.txt");
-            _trackPath = files.FirstOrDefault(o => o.Name is "track.opus" or "track.mp3" or "track.ogg" or "track.aac").FullName;
-            _videoPath = files.FirstOrDefault(o => o.Name is "bg.mp4" or "pv.mp4" or "mv.mp4")?.FullName ?? string.Empty;
-            _coverPath = files.FirstOrDefault(o => o.Name is "bg.png" or "bg.jpg")?.FullName ?? string.Empty;
+            _trackPath = files.FirstOrDefault(o => o.Name.ToLower() is "track.opus" or "track.mp3" or "track.ogg" or "track.aac").FullName;
+            _videoPath = files.FirstOrDefault(o => o.Name.ToLower() is "bg.mp4" or "pv.mp4" or "mv.mp4")?.FullName ?? string.Empty;
+            _coverPath = files.FirstOrDefault(o => o.Name.ToLower() is "bg.png" or "bg.jpg")?.FullName ?? string.Empty;
             _maidata = null;
 
             if (string.IsNullOrEmpty(_coverPath))
