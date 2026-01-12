@@ -251,9 +251,12 @@ namespace MajdataPlay.Utils
                     throw new InvalidOperationException();
                 }
                 var uri = apiEndpoint.Url.Combine(API_POST_AUTH_REQUEST);
+                var rsp = default(EndpointResponse);
 #if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
+                rsp = await PostAsync(uri, null, token);
 #else
-                var rsp = await PostAsync(uri, token);
+                rsp = await PostAsync(uri, token);
+#endif
                 if (rsp.StatusCode == HttpStatusCode.Created)
                 {
                     return new(rsp.AsMemory(), DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
@@ -278,7 +281,6 @@ namespace MajdataPlay.Utils
                         Message = "MAJTEXT_ONLINE_MACHINE_AUTH_REQUEST_FAILED"
                     };
                 }
-#endif
             }
         }
         public static async ValueTask<EndpointResponse> AuthCheckAsync(ApiEndpoint apiEndpoint, string authId, CancellationToken token = default)
@@ -304,11 +306,8 @@ namespace MajdataPlay.Utils
                 var uriBuilder = new UriBuilder(apiEndpoint.Url.Combine(API_GET_AUTH_CHECK));
                 uriBuilder.Query = $"auth-id={authId}";
                 var uri = uriBuilder.Uri;
-#if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
-#else
                 var rsp = await GetAsync(uri, token);
                 return rsp;
-#endif
             }
         }
         public static async ValueTask<EndpointResponse> AuthRevokeAsync(ApiEndpoint apiEndpoint, string authId, CancellationToken token = default)
@@ -334,11 +333,13 @@ namespace MajdataPlay.Utils
                 var uriBuilder = new UriBuilder(apiEndpoint.Url.Combine(API_POST_AUTH_REVOKE));
                 uriBuilder.Query = $"auth-id={authId}";
                 var uri = uriBuilder.Uri;
+                var rsp = default(EndpointResponse);
 #if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
+                rsp = await PostAsync(uri, null, token);
 #else
-                var rsp = await PostAsync(uri, token);
-                return rsp;
+                rsp = await PostAsync(uri, token);
 #endif
+                return rsp;
             }
         }
         public static async ValueTask<EndpointResponse> LoginAsync(ApiEndpoint apiEndpoint, string username, string password, CancellationToken token = default)
@@ -440,7 +441,12 @@ namespace MajdataPlay.Utils
                         {
                             MajDebug.LogInfo("Logout");
                             var uri = apiEndpoint.Url.Combine(API_POST_USER_LOGOUT);
-                            var rsp = await PostAsync(uri, token);
+                            var rsp = default(EndpointResponse);
+#if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
+                            rsp = await PostAsync(uri, null, token);
+#else
+                            rsp = await PostAsync(uri, token);
+#endif
                             MajDebug.LogInfo(rsp.Message + rsp.ErrorCode + rsp.StatusCode);
                         }
                         catch (Exception e)
@@ -474,11 +480,7 @@ namespace MajdataPlay.Utils
 
                 for (var i = 0; i <= MajEnv.HTTP_REQUEST_MAX_RETRY; i++)
                 {
-#if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
                     rsp = await GetAsync(interactUrl, token);
-#else
-                    rsp = await GetAsync(interactUrl, token);
-#endif
                     if (rsp.IsSuccessfully && rsp.IsDeserializable && rsp.TryDeserialize<MajNetSongInteract?>(out var intlist) && intlist is not null)
                     {
                         MajDebug.LogDebug(rsp);
@@ -631,7 +633,7 @@ namespace MajdataPlay.Utils
                     {
                         break;
                     }
-                    else if (!rsp.IsSuccessfully && rsp.StatusCode is not null)
+                    else if (!rsp.IsSuccessfully && rsp.StatusCode is not HttpStatusCode.OK)
                     {
                         break;
                     }
@@ -677,63 +679,68 @@ namespace MajdataPlay.Utils
         static async ValueTask<EndpointResponse> GetAsync(Uri uri, CancellationToken token = default)
         {
 #if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
-                await UniTask.SwitchToMainThread();
-                var getReq = UnityWebRequestFactory.Get(uri);
-                try
+            await UniTask.SwitchToMainThread();
+            var getReq = UnityWebRequestFactory.Get(uri);
+            var headers = default(IReadOnlyDictionary<string, IEnumerable<string>>);
+            try
+            {
+                var asyncOperation = getReq.SendWebRequest();
+                while (!asyncOperation.isDone)
                 {
-                    var asyncOperation = getReq.SendWebRequest();
-                    while (!asyncOperation.isDone)
+                    if (token.IsCancellationRequested)
                     {
-                        if (token.IsCancellationRequested)
-                        {
-                            getReq.Abort();
-                            throw new HttpException(uri.OriginalString, HttpErrorCode.Canceled);
-                        }
-                        await UniTask.Yield();
+                        getReq.Abort();
+                        throw new HttpException(uri.OriginalString, HttpErrorCode.Canceled);
                     }
-
-                    getReq.EnsureSuccessStatusCode();
-                    var nativeBuffer = getReq.downloadHandler.nativeData;
-                    var buffer = Array.Empty<byte>();
-                    if(nativeBuffer.Length != 0)
-                    {
-                        buffer = new byte[nativeBuffer.Length];
-                        nativeBuffer.CopyTo(buffer);
-                    }
-
-                    return new EndpointResponse(buffer, DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
-                    {
-                        IsSuccessfully = false,
-                        IsDeserializable = true && buffer.Length != 0,
-                        ErrorCode = default,
-                        StatusCode = (HttpStatusCode)getReq.responseCode,
-                        Message = ""
-                    };
+                    await UniTask.Yield();
                 }
-                catch (HttpException httpE)
+                headers = getReq.GetResponseHeaders()?.GroupBy(x => x.Key)
+                                                      .ToDictionary(x => x.Key, x => x.Select(x => x.Value).AsEnumerable());
+                getReq.EnsureSuccessStatusCode();
+                var nativeBuffer = getReq.downloadHandler.nativeData;
+                var buffer = Array.Empty<byte>();
+                if(nativeBuffer.Length != 0)
                 {
-                    MajDebug.LogException(httpE);
-                    return new EndpointResponse(Array.Empty<byte>(), DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
-                    {
-                        IsSuccessfully = false,
-                        IsDeserializable = false,
-                        ErrorCode = httpE.ErrorCode,
-                        StatusCode = httpE.StatusCode,
-                        Message = httpE.Message
-                    };
+                    buffer = new byte[nativeBuffer.Length];
+                    nativeBuffer.CopyTo(buffer);
                 }
-                catch(Exception e)
+
+                return new EndpointResponse(buffer, DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
                 {
-                    MajDebug.LogException(e);
-                    return new EndpointResponse(Array.Empty<byte>(), DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
-                    {
-                        IsSuccessfully = false,
-                        IsDeserializable = false,
-                        ErrorCode = HttpErrorCode.Unreachable,
-                        StatusCode = null,
-                        Message = e.ToString()
-                    };
-                }
+                    IsSuccessfully = true,
+                    IsDeserializable = true && buffer.Length != 0,
+                    ErrorCode = default,
+                    StatusCode = (HttpStatusCode)getReq.responseCode,
+                    Message = "",
+                    Headers = headers ?? EndpointResponse.EMPTY_HEADERS,
+                };
+            }
+            catch (HttpException httpE)
+            {
+                MajDebug.LogException(httpE);
+                return new EndpointResponse(Array.Empty<byte>(), DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
+                {
+                    IsSuccessfully = false,
+                    IsDeserializable = false,
+                    ErrorCode = httpE.ErrorCode,
+                    StatusCode = httpE.StatusCode,
+                    Message = httpE.Message,
+                    Headers = headers ?? EndpointResponse.EMPTY_HEADERS,
+                };
+            }
+            catch(Exception e)
+            {
+                MajDebug.LogException(e);
+                return new EndpointResponse(Array.Empty<byte>(), DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
+                {
+                    IsSuccessfully = false,
+                    IsDeserializable = false,
+                    ErrorCode = HttpErrorCode.Unreachable,
+                    StatusCode = null,
+                    Message = e.ToString(),
+                    Headers = headers ?? EndpointResponse.EMPTY_HEADERS,
+                };
+            }
 #else
             try
             {
@@ -795,12 +802,13 @@ namespace MajdataPlay.Utils
 
 
 #if ENABLE_IL2CPP || MAJDATA_IL2CPP_DEBUG
-        static async ValueTask<EndpointResponse> PostAsync(Uri uri, WWWForm form, CancellationToken token = default)
+        static async ValueTask<EndpointResponse> PostAsync(Uri uri, WWWForm? form = null, CancellationToken token = default)
         {
             await using (UniTask.ReturnToCurrentSynchronizationContext())
             {
                 await UniTask.SwitchToMainThread();
                 var getReq = UnityWebRequestFactory.Post(uri, form);
+                var headers = default(IReadOnlyDictionary<string, IEnumerable<string>>);
                 try
                 {
                     var asyncOperation = getReq.SendWebRequest();
@@ -813,7 +821,8 @@ namespace MajdataPlay.Utils
                         }
                         await UniTask.Yield();
                     }
-
+                    headers = getReq.GetResponseHeaders()?.GroupBy(x => x.Key)
+                                                          .ToDictionary(x => x.Key, x => x.Select(x => x.Value).AsEnumerable());
                     getReq.EnsureSuccessStatusCode();
                     var nativeBuffer = getReq.downloadHandler.nativeData;
                     var buffer = Array.Empty<byte>();
@@ -822,14 +831,14 @@ namespace MajdataPlay.Utils
                         buffer = new byte[nativeBuffer.Length];
                         nativeBuffer.CopyTo(buffer);
                     }
-
                     return new EndpointResponse(buffer, DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
                     {
-                        IsSuccessfully = false,
+                        IsSuccessfully = true,
                         IsDeserializable = true && buffer.Length != 0,
                         ErrorCode = default,
                         StatusCode = (HttpStatusCode)getReq.responseCode,
-                        Message = ""
+                        Message = "",
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
                 catch (HttpException httpE)
@@ -841,7 +850,8 @@ namespace MajdataPlay.Utils
                         IsDeserializable = false,
                         ErrorCode = httpE.ErrorCode,
                         StatusCode = httpE.StatusCode,
-                        Message = httpE.Message
+                        Message = httpE.Message,
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
                 catch (Exception e)
@@ -853,7 +863,8 @@ namespace MajdataPlay.Utils
                         IsDeserializable = false,
                         ErrorCode = HttpErrorCode.Unreachable,
                         StatusCode = null,
-                        Message = e.ToString()
+                        Message = e.ToString(),
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
             }
@@ -864,6 +875,7 @@ namespace MajdataPlay.Utils
             {
                 await UniTask.SwitchToMainThread();
                 var getReq = UnityWebRequestFactory.Post(uri, content, contentType);
+                var headers = default(IReadOnlyDictionary<string, IEnumerable<string>>);
                 try
                 {
                     var asyncOperation = getReq.SendWebRequest();
@@ -876,7 +888,8 @@ namespace MajdataPlay.Utils
                         }
                         await UniTask.Yield();
                     }
-
+                    headers = getReq.GetResponseHeaders()?.GroupBy(x => x.Key)
+                                                          .ToDictionary(x => x.Key, x => x.Select(x => x.Value).AsEnumerable());
                     getReq.EnsureSuccessStatusCode();
                     var nativeBuffer = getReq.downloadHandler.nativeData;
                     var buffer = Array.Empty<byte>();
@@ -888,11 +901,12 @@ namespace MajdataPlay.Utils
 
                     return new EndpointResponse(buffer, DEFAULT_JSON_SERIALIZER, DEFAULT_JSON_SERIALIZER_SETTINGS)
                     {
-                        IsSuccessfully = false,
+                        IsSuccessfully = true,
                         IsDeserializable = true && buffer.Length != 0,
                         ErrorCode = default,
                         StatusCode = (HttpStatusCode)getReq.responseCode,
-                        Message = ""
+                        Message = "",
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
                 catch (HttpException httpE)
@@ -904,7 +918,8 @@ namespace MajdataPlay.Utils
                         IsDeserializable = false,
                         ErrorCode = httpE.ErrorCode,
                         StatusCode = httpE.StatusCode,
-                        Message = httpE.Message
+                        Message = httpE.Message,
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
                 catch (Exception e)
@@ -916,7 +931,8 @@ namespace MajdataPlay.Utils
                         IsDeserializable = false,
                         ErrorCode = HttpErrorCode.Unreachable,
                         StatusCode = null,
-                        Message = e.ToString()
+                        Message = e.ToString(),
+                        Headers = headers ?? EndpointResponse.EMPTY_HEADERS
                     };
                 }
             }

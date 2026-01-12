@@ -31,7 +31,7 @@ namespace MajdataPlay
         public const int HIDDEN_LAYER = 3;
         public const int HTTP_BUFFER_SIZE = 8192;
         public const int HTTP_REQUEST_MAX_RETRY = 4;
-        public const int HTTP_TIMEOUT_MS = 8000;
+        public const int HTTP_TIMEOUT_MS = 10000;
         public const float FRAME_LENGTH_SEC = 1f / 60;
         public const float FRAME_LENGTH_MSEC = FRAME_LENGTH_SEC * 1000;
 
