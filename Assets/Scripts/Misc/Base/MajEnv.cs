@@ -159,10 +159,10 @@ namespace MajdataPlay
 
             //}
             var androidStoragePermissions = new string[]
-                {
+            {
                 Permission.ExternalStorageRead,
                 Permission.ExternalStorageWrite,
-                };
+            };
             var isGranted = true;
             for (var i = 0; i < androidStoragePermissions.Length; i++)
             {
@@ -192,6 +192,24 @@ namespace MajdataPlay
                 if (!Directory.Exists(RootPath))
                 {
                     Directory.CreateDirectory(RootPath);
+                }
+                var noMediaFlag = new FileInfo(Path.Combine(RootPath, ".nomedia"));
+                if(!noMediaFlag.Exists)
+                {
+                    try
+                    {
+                        noMediaFlag.Create().Dispose();
+                        MajDebug.LogDebug("Created .nomedia flag file");
+                    }
+                    catch(Exception e)
+                    {
+                        MajDebug.LogError("Failed to create .nomedia flag file");
+                        MajDebug.LogException(e);
+                    }
+                }
+                else
+                {
+                    MajDebug.LogDebug(".nomedia flag file exists");
                 }
                 AssetsPath = Path.Combine(RootPath, "ExtStreamingAssets/");
             }
