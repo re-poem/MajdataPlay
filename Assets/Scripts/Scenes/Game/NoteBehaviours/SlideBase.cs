@@ -196,6 +196,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         // Flags
         protected bool _isCheckable = false;
         protected bool _isSoundPlayed = false;
+        protected uint _slideBarFadeInFlag = 0;
 
         GameObject?[] _rentedArrayForStars;
         Transform[] _rentedArrayForStarTransforms;
@@ -490,8 +491,10 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void SlideBarFadeIn()
         {
-            if (IsEnded || IsSlideNoTrack)
+            if (_slideBarFadeInFlag == 1 || IsEnded || IsSlideNoTrack)
+            {
                 return;
+            }
 
             var num = Timing - 0.05f;
             var interval = (num - _fadeInTiming).Clamp(0, 0.2f);
@@ -499,7 +502,20 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             if (ThisFrameSec > num)
             {
+                _slideBarFadeInFlag = 1;
                 SetSlideBarAlpha(1f);
+                if (IsBreak)
+                {
+                    var breakMaterial = BreakMaterial;
+                    if(breakMaterial is not null)
+                    {
+                        for (var i = 0; i < _slideBarRenderers.Count; i++)
+                        {
+                            var renderer = _slideBarRenderers[i];
+                            renderer.sharedMaterial = breakMaterial;
+                        }
+                    }
+                }
                 return;
             }
             else if (ThisFrameSec > fullFadeInTiming)
