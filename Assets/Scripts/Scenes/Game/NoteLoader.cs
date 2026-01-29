@@ -21,6 +21,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1224,8 +1225,9 @@ namespace MajdataPlay.Scenes.Game
 
                             if (property != null && property.CanWrite)
                                 property.SetValue(oc, value);
+
+                            break;
                         }
-                        break;
                 }
             }
             //else if (cmd[0] == "ui")

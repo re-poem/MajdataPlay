@@ -224,7 +224,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
             IsBreak = poolingInfo.IsBreak;
             IsEX = poolingInfo.IsEX;
             IsKustom = poolingInfo.IsKustom;
-            IsSlient = poolingInfo.IsSlient;
+            IsSlient = poolingInfo.IsSlient; //TODO: Slient note
             IsUnplayable = poolingInfo.IsUnplayable;
             KustomSkin = poolingInfo.KustomSkin;
             KustomWav = poolingInfo.KustomWav;
