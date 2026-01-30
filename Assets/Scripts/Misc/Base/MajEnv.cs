@@ -142,7 +142,7 @@ namespace MajdataPlay
         }
         internal static void InitPath()
         {
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+#if UNITY_STANDALONE || UNITY_EDITOR
             RootPath = Path.Combine(Application.dataPath, "../");
             AssetsPath = Application.streamingAssetsPath;
             CachePath = Path.Combine(RootPath, "Cache");
