@@ -327,11 +327,7 @@ namespace UnityEngine.InputSystem.LowLevel
         /// Maximum number of touches that can be tracked at the same time.
         /// </summary>
         /// <value>Maximum number of concurrent touches.</value>
-#if UNITY_ANDROID
         public const int MaxTouches = 10;
-#else
-        public const int MaxTouches = 512;
-#endif
 
         /// <summary>
         /// Data for the touch that is deemed the "primary" touch at the moment.
