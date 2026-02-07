@@ -1,0 +1,70 @@
+name: Build IPA
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build-ios-unsigned:
+    name: Build iOS (Unsigned)
+    runs-on: macos-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      # 2. 缓存 Library (省时间)
+      - name: Cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      # 3. Unity 构建 -> 生成 Xcode 工程
+      - name: Build Unity Project to Xcode
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: iOS
+          buildName: Unity-iPhone
+          buildsPath: build
+
+      # 4. 修改 Xcode 设置，强行关闭签名检查
+      - name: Disable Signing in Xcode Project
+        run: |
+          cd build/iOS/Unity-iPhone.xcodeproj
+          sed -i '' 's/CODE_SIGNING_ALLOWED = YES;/CODE_SIGNING_ALLOWED = NO;/g' project.pbxproj
+          sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' project.pbxproj
+          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' project.pbxproj
+
+      # 5. 编译 .app 文件 (无签名模式)
+      - name: Build Unsigned App
+        run: |
+          xcodebuild -project build/iOS/Unity-iPhone.xcodeproj \
+            -scheme Unity-iPhone \
+            -configuration Release \
+            -derivedDataPath build/derivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      # 6. 打包成 IPA
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/derivedData/Build/Products/Release-iphoneos/Unity-iPhone.app Payload/
+          zip -r UnityGame.ipa Payload
+
+      # 7. 上传结果
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MajPlay-iOS-Build
+          path: MajPlay.ipa
