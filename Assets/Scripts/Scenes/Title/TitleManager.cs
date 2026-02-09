@@ -135,9 +135,9 @@ namespace MajdataPlay.Scenes.Title
                 _flag = true;
             }
         }
-                IEnumerator ExtractStreamingAss()
+        IEnumerator ExtractStreamingAss()
         {
-            #if UNITY_ANDROID
+#if UNITY_ANDROID
             var extractRoot = MajEnv.AssetsPath;
             echoText.text = $"Extracting Assets...";
             Directory.CreateDirectory(extractRoot);
@@ -211,6 +211,8 @@ namespace MajdataPlay.Scenes.Title
                 yield return null;
             }
             echoText.text = "Please Reboot The Game";
+#else
+            yield return new WaitForEndOfFrame();
 #endif
         }
 
