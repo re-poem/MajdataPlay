@@ -43,7 +43,7 @@ namespace MajdataPlay.Scenes.Game
         RawImage _rawImage;
         static Texture2D? _emptyTexture;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
         const int MAX_CACHE_COUNT = 16;
 #else
         const int MAX_CACHE_COUNT = 32;

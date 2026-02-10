@@ -137,7 +137,7 @@ namespace MajdataPlay.Scenes.Title
         }
         IEnumerator ExtractStreamingAss()
         {
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (Extract Assets)
             var extractRoot = MajEnv.AssetsPath;
             echoText.text = $"Extracting Assets...";
             Directory.CreateDirectory(extractRoot);
@@ -173,7 +173,7 @@ namespace MajdataPlay.Scenes.Title
                 }
             }
             echoText.text = $"Please Reboot The Game";
-#elif UNITY_IOS
+#elif UNITY_IOS // iOS Only (Extract Assets)
             var extractRoot = MajEnv.AssetsPath;
             echoText.text = $"Extracting Assets...";
             Directory.CreateDirectory(extractRoot);

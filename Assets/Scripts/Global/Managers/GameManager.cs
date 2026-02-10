@@ -61,7 +61,7 @@ namespace MajdataPlay
             MajDebug.LogInfo(s);
             MajDebug.LogInfo($"PID: {MajEnv.GameProcess.Id}");
             MajDebug.LogInfo($"Version: {MajInstances.GameVersion}");
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (Sdk Version Log)
             MajDebug.LogInfo($"AndroidSdkVersion: {MajEnv.AndroidSdkVersion}");
 #endif
             MajEnv.Init();
@@ -287,7 +287,7 @@ namespace MajdataPlay
 
         public void EnableGC()
         {
-#if UNITY_ANDROID && !UNITY_EDITOR //&& false
+#if UNITY_ANDROID && !UNITY_EDITOR //Android Only (GC Enable)
             GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
             MajDebug.LogWarning("GC has been enabled");
 #else
@@ -296,7 +296,7 @@ namespace MajdataPlay
         }
         public void DisableGC() 
         {
-#if UNITY_ANDROID && !UNITY_EDITOR //&& false
+#if UNITY_ANDROID && !UNITY_EDITOR //Android Only (GC Disable)
             GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
             MajDebug.LogWarning("GC has been disabled");
 #else

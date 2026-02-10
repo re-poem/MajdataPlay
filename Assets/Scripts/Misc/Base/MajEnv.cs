@@ -43,7 +43,7 @@ namespace MajdataPlay
         public static event Action? OnApplicationQuit;
         public static event Action? OnSave;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (User Agent)
         public static string HTTP_USER_AGENT { get; } = $"MajdataPlay Android/{MajInstances.GameVersion.ToString()}";
 #else
         public static string HTTP_USER_AGENT { get; } = $"MajdataPlay/{MajInstances.GameVersion.ToString()}";
@@ -60,7 +60,7 @@ namespace MajdataPlay
 #endif
         public static int AndroidSdkVersion 
         {
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR // Android Only (Sdk Version Declare)
             get; 
             private set;
 #else

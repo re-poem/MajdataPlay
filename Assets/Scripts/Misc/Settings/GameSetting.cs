@@ -413,7 +413,7 @@ namespace MajdataPlay.Settings
     }
     public class MobileAudioOptions
     {
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (AAudio)
         public bool EnableAAudio { get; set; } = true;
 #endif
         public int BufferLengthMs { get; set; } = 64;

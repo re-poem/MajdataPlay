@@ -65,7 +65,7 @@ namespace MajdataPlay.IO
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _sensorStatusInPreviousFrame;
         }
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
         public static ReadOnlySpan<int> SensorClickedCountInThisFrame
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

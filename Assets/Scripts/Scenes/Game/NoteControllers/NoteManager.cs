@@ -115,9 +115,8 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
         {
             Majdata<NoteManager>.Free();
         }
-#if UNITY_ANDROID
-#else
-#endif
+
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void OnPreUpdate()
         {
@@ -284,7 +283,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
             var previousSensorStatus = InputManager.SensorStatusInPreviousFrame;
             var currentSensorStatus = InputManager.SensorStatusInThisFrame;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
             var sensorClickedCount = InputManager.SensorClickedCountInThisFrame;
             for (var i = 0; i < 33; i++)
             {
@@ -326,7 +325,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                 _btnStatusInNextFrame[i] = SwitchStatus.Off;
                 _isBtnClickedInThisFrame[i] = _btnStatusInPreviousFrame[i] == SwitchStatus.Off &&
                                               _btnStatusInThisFrame[i] == SwitchStatus.On;
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
                 _isSensorClickedInThisFrame[i] |= _isBtnClickedInThisFrame[i];
                 _sensorClickedCountInThisFrame[i] += Convert.ToInt32(_isBtnClickedInThisFrame[i]);
 #endif
@@ -344,7 +343,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Controllers
                 _sensorStatusInThisFrame[i] = senState;
                 _sensorStatusInNextFrame[i] = SwitchStatus.Off;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_IOS
                 var isClicked = _sensorStatusInPreviousFrame[i] == SwitchStatus.Off &&
                                 _sensorStatusInThisFrame[i] == SwitchStatus.On;
                 _isSensorClickedInThisFrame[i] |= isClicked;

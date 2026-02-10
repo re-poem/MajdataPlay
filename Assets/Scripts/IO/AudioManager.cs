@@ -241,7 +241,7 @@ namespace MajdataPlay.IO
                             mobileOptions.DeviceUpdatePeriodMs = mobileOptions.DeviceUpdatePeriodMs.Clamp(1, int.MaxValue);
                             mobileOptions.DeviceBufferLengthMs = mobileOptions.DeviceBufferLengthMs.Clamp(mobileOptions.DeviceUpdatePeriodMs * 2, int.MaxValue);
                             var @return = default(bool);
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (AAudio Config)
                             @return = Bass.Configure(Configuration.AndroidAAudio, mobileOptions.EnableAAudio);
                             MajDebug.LogInfo($"[Bass] Set AndroidAAudio: {@return}");
 #endif
