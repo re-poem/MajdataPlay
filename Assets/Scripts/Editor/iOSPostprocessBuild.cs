@@ -1,3 +1,4 @@
+#if UNITY_IOS
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -274,3 +275,4 @@ namespace MajdataPlay.Editor
         }
     }
 }
+#endif
