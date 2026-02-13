@@ -89,7 +89,7 @@ namespace MajdataPlay
         }
         public OnlineSongDetail(ApiEndpoint serverInfo, MajnetSongDetail songDetail)
         {
-            var apiroot = serverInfo.Url.Combine("maichart");
+            var apiroot = serverInfo.Url.Combine($"maichart/{songDetail.Id}/");
             
             Title = songDetail.Title;
             Artist = songDetail.Artist;
@@ -101,11 +101,11 @@ namespace MajdataPlay
                 }
                 _levels[i] = songDetail.Levels[i];
             }
-            _maidataUri = apiroot.Combine(songDetail.Id, "chart");
-            _trackUri = apiroot.Combine(songDetail.Id, "track");
-            _fullSizeCoverUri = apiroot.Combine(songDetail.Id, "image?fullimage=true");
-            _videoUri = apiroot.Combine(songDetail.Id, "video");
-            _coverUri = apiroot.Combine(songDetail.Id, "image");
+            _maidataUri = apiroot.Combine("chart");
+            _trackUri = apiroot.Combine("track");
+            _fullSizeCoverUri = apiroot.Combine("image?fullimage=true");
+            _videoUri = apiroot.Combine("video");
+            _coverUri = apiroot.Combine("image");
 
             Hash = songDetail.Hash;
             _hashHexStr = HashHelper.ToHexString(Convert.FromBase64String(Hash));
