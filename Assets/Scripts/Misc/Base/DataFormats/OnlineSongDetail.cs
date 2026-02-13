@@ -934,8 +934,9 @@ namespace MajdataPlay
                         else
                         {
                             fileStream.Position = 0;
-                            var currentHash = SHA256.Create().ComputeHash(fileStream);
-                            if(fileSHA256 != Convert.ToBase64String(currentHash))
+                            var currentHashBytes = SHA256.Create().ComputeHash(fileStream);
+                            var currentHash = Convert.ToBase64String(currentHashBytes);
+                            if (fileSHA256 != currentHash)
                             {
                                 MajDebug.LogWarning($"Hash mismatch for online resource\nOrigin: {fileSHA256}\nLocal: {currentHash}");
                                 if (i == MajEnv.HTTP_REQUEST_MAX_RETRY)
