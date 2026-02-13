@@ -757,7 +757,7 @@ namespace MajdataPlay
                     }
                     else
                     {
-                        var header = request.GetResponseHeader("hash");
+                        var header = request.GetResponseHeader("Hash") ?? request.GetResponseHeader("hash");
                         if (!string.IsNullOrEmpty(header))
                         {
                             var hash = header;
