@@ -515,15 +515,15 @@
       "Content": "下载视频中"
     },
     {
-      "Origin": "Search",
+      "Origin": "MAJTEXT_SORTFIND_Search",
       "Content": "搜索"
     },
     {
-      "Origin": "UseKeyboardHint",
+      "Origin": "MAJTEXT_SORTFIND_UseKeyboardHint",
       "Content": "拿出你的键盘使劲的敲啊..."
     },
     {
-      "Origin": "Sort",
+      "Origin": "MAJTEXT_SORTFIND_Sort",
       "Content": "排序"
     },
     {

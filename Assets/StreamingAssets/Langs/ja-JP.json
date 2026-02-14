@@ -431,15 +431,15 @@
       "Content": "動画をダウンロード中"
     },
     {
-      "Origin": "Search",
+      "Origin": "MAJTEXT_SORTFIND_Search",
       "Content": "検索"
     },
     {
-      "Origin": "UseKeyboardHint",
+      "Origin": "MAJTEXT_SORTFIND_UseKeyboardHint",
       "Content": "鍵盤を使ってください..."
     },
     {
-      "Origin": "Sort",
+      "Origin": "MAJTEXT_SORTFIND_Sort",
       "Content": "順番"
     },
     {

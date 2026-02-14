@@ -511,15 +511,15 @@
       "Content": "下載PV動畫中"
     },
     {
-      "Origin": "Search",
+      "Origin": "MAJTEXT_SORTFIND_Search",
       "Content": "搜尋"
     },
     {
-      "Origin": "UseKeyboardHint",
+      "Origin": "MAJTEXT_SORTFIND_UseKeyboardHint",
       "Content": "拿出你的鍵盤使勁的敲啊..."
     },
     {
-      "Origin": "Sort",
+      "Origin": "MAJTEXT_SORTFIND_Sort",
       "Content": "排序"
     },
     {
