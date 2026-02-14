@@ -14,4 +14,5 @@ internal enum HttpErrorCode
     Unsuccessful,
     Timeout,
     Canceled,
+    IntegrityCheckFailed
 }

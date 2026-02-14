@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
 using HidSharp.Platform.Windows;
+#if UNITY_STANDALONE_WIN
 using LibVLCSharp;
+#endif
 using MajdataPlay.Buffers;
 using MajdataPlay.Extensions;
 using MajdataPlay.Net;
@@ -41,8 +43,10 @@ namespace MajdataPlay
         public static event Action? OnApplicationQuit;
         public static event Action? OnSave;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Android Only (User Agent)
         public static string HTTP_USER_AGENT { get; } = $"MajdataPlay Android/{MajInstances.GameVersion.ToString()}";
+#elif UNITY_IOS // iOS Only (User Agent)
+        public static string HTTP_USER_AGENT { get; } = $"MajdataPlay iOS/{MajInstances.GameVersion.ToString()}";
 #else
         public static string HTTP_USER_AGENT { get; } = $"MajdataPlay/{MajInstances.GameVersion.ToString()}";
 #endif
@@ -58,7 +62,7 @@ namespace MajdataPlay
 #endif
         public static int AndroidSdkVersion 
         {
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR // Android Only (Sdk Version Declare)
             get; 
             private set;
 #else
@@ -140,7 +144,7 @@ namespace MajdataPlay
         }
         internal static void InitPath()
         {
-#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE || UNITY_EDITOR
             RootPath = Path.Combine(Application.dataPath, "../");
             AssetsPath = Application.streamingAssetsPath;
             CachePath = Path.Combine(RootPath, "Cache");
@@ -218,6 +222,10 @@ namespace MajdataPlay
                 RootPath = Application.persistentDataPath;
                 AssetsPath = Path.Combine(Application.persistentDataPath, "ExtStreamingAssets/");
             }
+            CachePath = Application.temporaryCachePath;
+#elif UNITY_IOS
+            RootPath = Application.persistentDataPath;
+            AssetsPath = Path.Combine(Application.persistentDataPath, "ExtStreamingAssets/");
             CachePath = Application.temporaryCachePath;
 #else
             throw new NotImplementedException();
