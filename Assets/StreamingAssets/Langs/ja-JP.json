@@ -443,23 +443,23 @@
       "Content": "順番"
     },
     {
-      "Origin": "SortbyTime",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTime",
       "Content": "時間"
     },
     {
-      "Origin": "SortbyDiff",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDiff",
       "Content": "難易\n度順"
     },
     {
-      "Origin": "SortbyDes",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDes",
       "Content": "譜面\n作者"
     },
     {
-      "Origin": "SortbyTitle",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTitle",
       "Content": "タイ\nトル"
     },
     {
-      "Origin": "SortbyDefault",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDefault",
       "Content": "デフォルト"
     },
     {

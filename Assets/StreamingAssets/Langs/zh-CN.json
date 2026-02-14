@@ -527,23 +527,23 @@
       "Content": "排序"
     },
     {
-      "Origin": "SortbyTime",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTime",
       "Content": "添加\n时间"
     },
     {
-      "Origin": "SortbyDiff",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDiff",
       "Content": "谱面\n难度"
     },
     {
-      "Origin": "SortbyDes",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDes",
       "Content": "谱面\n作者"
     },
     {
-      "Origin": "SortbyTitle",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTitle",
       "Content": "谱面\n标题"
     },
     {
-      "Origin": "SortbyDefault",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDefault",
       "Content": "默认"
     },
     {

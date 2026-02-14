@@ -269,7 +269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: SortbyDiff
+  local_key: MAJTEXT_SORTFIND_SortbyDiff
 --- !u!1 &103867546
 GameObject:
   m_ObjectHideFlags: 0
@@ -417,7 +417,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: SortbyTitle
+  local_key: MAJTEXT_SORTFIND_SortbyTitle
 --- !u!1 &109707271
 GameObject:
   m_ObjectHideFlags: 0
@@ -565,7 +565,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: Sort
+  local_key: MAJTEXT_SORTFIND_Sort
 --- !u!1 &119484490
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,7 +713,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: SortbyTime
+  local_key: MAJTEXT_SORTFIND_SortbyTime
 --- !u!1001 &189424104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1561,7 +1561,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: SortbyDes
+  local_key: MAJTEXT_SORTFIND_SortbyDes
 --- !u!1 &717525902
 GameObject:
   m_ObjectHideFlags: 0
@@ -1815,7 +1815,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: SortbyDefault
+  local_key: MAJTEXT_SORTFIND_SortbyDefault
 --- !u!1 &1127180453
 GameObject:
   m_ObjectHideFlags: 0
@@ -2081,7 +2081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: UseKeyboardHint
+  local_key: MAJTEXT_SORTFIND_UseKeyboardHint
 --- !u!1 &1791457500
 GameObject:
   m_ObjectHideFlags: 0
@@ -2304,7 +2304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44ef1e05d923c540945f6ab6c06d325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  local_key: Search
+  local_key: MAJTEXT_SORTFIND_Search
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
