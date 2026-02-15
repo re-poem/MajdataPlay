@@ -511,35 +511,35 @@
       "Content": "下載PV動畫中"
     },
     {
-      "Origin": "Search",
+      "Origin": "MAJTEXT_SORTFIND_Search",
       "Content": "搜尋"
     },
     {
-      "Origin": "UseKeyboardHint",
+      "Origin": "MAJTEXT_SORTFIND_UseKeyboardHint",
       "Content": "拿出你的鍵盤使勁的敲啊..."
     },
     {
-      "Origin": "Sort",
+      "Origin": "MAJTEXT_SORTFIND_Sort",
       "Content": "排序"
     },
     {
-      "Origin": "SortbyTime",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTime",
       "Content": "添加\n時間"
     },
     {
-      "Origin": "SortbyDiff",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDiff",
       "Content": "譜面\n難度"
     },
     {
-      "Origin": "SortbyDes",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDes",
       "Content": "譜面\n作者"
     },
     {
-      "Origin": "SortbyTitle",
+      "Origin": "MAJTEXT_SORTFIND_SortbyTitle",
       "Content": "譜面\n標題"
     },
     {
-      "Origin": "SortbyDefault",
+      "Origin": "MAJTEXT_SORTFIND_SortbyDefault",
       "Content": "默認"
     },
     {
@@ -732,15 +732,15 @@
     },
     {
       "Origin": "MAJSETTING_PROPERTY_BGInfo_OPTION_S_Border",
-      "Content": "距S級"
+      "Content": "距離分數S"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_BGInfo_OPTION_SS_Border",
-      "Content": "距SS級"
+      "Content": "距離分數SS"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_BGInfo_OPTION_SSS_Border",
-      "Content": "距SSS級"
+      "Content": "距離分數SSS"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_BGInfo_OPTION_MyBest",
@@ -755,32 +755,40 @@
       "Content": "無"
     },
     {
-      "Origin": "THUMBUP_INFO",
+      "Origin": "MAJTEXT_THUMBUP_INFO",
       "Content": "<好玩就點個讚吧"
     },
     {
-      "Origin": "THUMBUP_SENDING",
+      "Origin": "MAJTEXT_THUMBUP_SENDING",
       "Content": "..."
     },
     {
-      "Origin": "THUMBUP_SENDED",
+      "Origin": "MAJTEXT_THUMBUP_SENDED",
       "Content": "點讚成功"
     },
     {
-      "Origin": "THUMBUP_ALREADY",
+      "Origin": "MAJTEXT_THUMBUP_ALREADY",
       "Content": "你已經點過讚了"
     },
     {
-      "Origin": "THUMBUP_FAILED",
+      "Origin": "MAJTEXT_THUMBUP_FAILED",
       "Content": "點讚失敗"
     },
     {
-      "Origin": "SCORE_SENDING",
+      "Origin": "MAJTEXT_SCORE_SENDING",
       "Content": "..."
     },
     {
-      "Origin": "SCORE_SENDED",
+      "Origin": "MAJTEXT_SCORE_SENDED",
       "Content": "成績已上傳"
+    },
+    {
+      "Origin": "MAJTEXT_SCORE_FAILED",
+      "Content": "上傳成績失敗"
+    },
+    {
+      "Origin": "MAJTEXT_LOGIN_SESSION_EXPIRED",
+      "Content": "登入會話已過期"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_Random",
@@ -804,7 +812,7 @@
     },
     {
       "Origin": "MAJSETTING_PROPERTY_Topmost_DESC",
-      "Content": "讓majplay窗口總在最前"
+      "Content": "讓MajPlay視窗優先度最前"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_FPSLimit",
@@ -880,7 +888,7 @@
     },
     {
       "Origin": "Input_Hint",
-      "Content": "按Select(或觸摸副屏)搜索和排序歌曲。觸摸歌曲封面隨機選曲。長按4號鍵開啟練習模式。\n按Alt+Enter切換全屏模式。按Alt+F4退出遊戲。"
+      "Content": "按Select(或觸摸副螢幕)搜索和排序歌曲。觸摸歌曲封面隨機選曲。長按4號鍵開啟練習模式。\n按Alt+Enter切換全屏模式。按Alt+F4退出遊戲。"
     },
     {
       "Origin": "MAJSETTING_PROPERTY_SubdivideSlideJudgeGrade",
@@ -920,7 +928,15 @@
     },
     {
       "Origin": "MAJTEXT_SETTING_OFFSETUNIT_Frame",
-      "Content": "單位: 幀"
+      "Content": "單位: 幀數"
+    },
+    {
+      "Origin": "MAJSETTING_PROPERTY_TrackVolumeOffset",
+      "Content": "音樂音量偏移"
+    },
+    {
+      "Origin": "MAJSETTING_PROPERTY_TrackVolumeOffset_DESC",
+      "Content": "Nothing"
     }
   ]
 }

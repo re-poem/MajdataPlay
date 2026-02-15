@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MajdataPlay.Buffers;
 using MajdataPlay.Collections;
 using MajdataPlay.Editor;
@@ -198,6 +198,7 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         // Flags
         protected bool _isCheckable = false;
         protected bool _isSoundPlayed = false;
+        protected uint _slideBarFadeInFlag = 0;
 
         protected string[] _kustomWavs = new string[2]; //start, judge
 
@@ -432,15 +433,19 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         {
             if (IsKustom && !_kustomWavs[1].IsNullOrEmpty())
                 _audioEffMana.currentkWav.Add(_kustomWavs[1]);
-            if ((judgeResult.IsBreak || judgeResult.IsKustom) && !judgeResult.IsMissOrTooFast)
+            if (judgeResult.IsBreak && judgeResult.Grade == JudgeGrade.Perfect)
                 _audioEffMana.PlayBreakSlideEndSound(IsKustom && KustomWav != null);
         }
         protected virtual void TooLateJudge()
         {
             if (QueueRemaining == 1)
+            {
                 _judgeResult = JudgeGrade.LateGood;
+            }
             else
+            {
                 _judgeResult = JudgeGrade.Miss;
+            }
             ConvertJudgeGrade(ref _judgeResult);
             _isJudged = true;
         }
@@ -492,8 +497,10 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void SlideBarFadeIn()
         {
-            if (IsEnded || IsSlideNoTrack)
+            if (_slideBarFadeInFlag == 1 || IsEnded || IsSlideNoTrack)
+            {
                 return;
+            }
 
             var num = Timing - 0.05f;
             var interval = (num - _fadeInTiming).Clamp(0, 0.2f);
@@ -501,7 +508,20 @@ namespace MajdataPlay.Scenes.Game.Notes.Behaviours
 
             if (ThisFrameSec > num)
             {
+                _slideBarFadeInFlag = 1;
                 SetSlideBarAlpha(1f);
+                if (IsBreak)
+                {
+                    var breakMaterial = BreakMaterial;
+                    if(breakMaterial is not null)
+                    {
+                        for (var i = 0; i < _slideBarRenderers.Count; i++)
+                        {
+                            var renderer = _slideBarRenderers[i];
+                            renderer.sharedMaterial = breakMaterial;
+                        }
+                    }
+                }
                 return;
             }
             else if (ThisFrameSec > fullFadeInTiming)
