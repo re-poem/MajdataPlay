@@ -351,7 +351,9 @@ namespace MajdataPlay.IO
                 SFXSamples.Add((sample));
             }
 
-            var kustomFileNameList = Directory.EnumerateFiles(rootPath + "Kustom/", "*", SearchOption.AllDirectories);
+            var kustomPath = rootPath + "Kustom/";
+            if (!File.Exists(kustomPath)) return;
+            var kustomFileNameList = Directory.EnumerateFiles(kustomPath, "*", SearchOption.AllDirectories);
 
             foreach (var fullFilePath in kustomFileNameList)
             {
@@ -391,6 +393,7 @@ namespace MajdataPlay.IO
                 SFXSamples.Add(sample);
             }
         }
+
         void OnAnyAreaDown(object sender, InputEventArgs e)
         {
             if (e.Status != SwitchStatus.On)
