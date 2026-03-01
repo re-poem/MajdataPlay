@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Packages/Lingfeng-bbben.MajSimai.2.0.512/lib/netstandard2.1/MajSimai.dll.meta
-guid: 54678511455181d48bce79cfea55eeb5
-========
-guid: d00f17e57c38f2148940d7eee8fcd3f4
->>>>>>>> upstream/beta1.0:Assets/Packages/Lingfeng-bbben.MajSimai.2.0.6/lib/netstandard2.1/MajSimai.dll.meta
+guid: b4fd165fc6a492b41a3687272f1037cf
 labels:
 - NuGetForUnity
 PluginImporter:
